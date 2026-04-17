@@ -18,7 +18,7 @@ const razorpay = new Razorpay({
 app.post("/create-order", async (req, res) => {
   const { amount, currency = "INR" } = req.body;
   console.log(`Creating order for amount: ${amount}`);
-  
+
   const options = {
     amount: amount * 100, // Razorpay expects amount in paise
     currency,
@@ -54,4 +54,8 @@ app.post("/send-email", async (req, res) => {
   res.json({ message: "Email sent" });
 });
 
-app.listen(5000, () => console.log("Server running on 5000"));
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
