@@ -220,22 +220,9 @@ const DONOR_LOG = [
     { name: "Aryan Patel", email: "aryan.p@outlook.com", phone: "87654XXXXX", amount: 10000, cause: "All Causes", date: "2025-06-12" },
     { name: "Geeta Singh", email: "gsingh@rediff.com", phone: "76543XXXXX", amount: 1500, cause: "Education Fund", date: "2025-06-11" },
     { name: "Suresh Nambiar", email: "s.nambiar@gmail.com", phone: "91234XXXXX", amount: 3000, cause: "Plant a Billion Trees", date: "2025-06-10" },
-    { name: "Ravi Shankar", email: "ravi.s@gmail.com", phone: "98231XXXXX", amount: 2500, cause: "Bright Futures Education Fund", date: "2025-06-09" },
-    { name: "Pooja Desai", email: "p.desai@yahoo.com", phone: "91456XXXXX", amount: 7500, cause: "Flood Relief — Assam 2025", date: "2025-06-08" },
-    { name: "Kunal Kapoor", email: "kunal.kapoor@outlook.com", phone: "88990XXXXX", amount: 1500, cause: "Zero Hunger — Mid-Day Meals", date: "2025-06-07" },
-    { name: "Anjali Gupta", email: "anjali.g@gmail.com", phone: "70012XXXXX", amount: 4000, cause: "Rural Health Access Initiative", date: "2025-06-06" },
-    { name: "Manish Sharma", email: "m.sharma@hotmail.com", phone: "90213XXXXX", amount: 5000, cause: "Plant a Billion Trees Campaign", date: "2025-06-06" },
-    { name: "Neha Verma", email: "neha.verma@gmail.com", phone: "95678XXXXX", amount: 2000, cause: "All Causes", date: "2025-06-05" },
-    { name: "Sanjay Joshi", email: "sanjay.j@rediff.com", phone: "81234XXXXX", amount: 10000, cause: "Bright Futures Education Fund", date: "2025-06-04" },
-    { name: "Priya Singh", email: "priya.s@yahoo.in", phone: "99887XXXXX", amount: 6000, cause: "Empowering Women Artisans", date: "2025-06-03" },
-    { name: "Aditya Patil", email: "aditya.patil@gmail.com", phone: "77654XXXXX", amount: 3000, cause: "Flood Relief — Assam 2025", date: "2025-06-02" },
-    { name: "Kavita Nair", email: "kavita.nair@outlook.com", phone: "91029XXXXX", amount: 4500, cause: "Rural Health Access Initiative", date: "2025-06-01" },
-    { name: "Tarun Kumar", email: "tarun.k@gmail.com", phone: "80099XXXXX", amount: 2000, cause: "Plant a Billion Trees Campaign", date: "2025-05-30" },
-    { name: "Deepa Reddy", email: "deepa.r@yahoo.com", phone: "94567XXXXX", amount: 8000, cause: "Zero Hunger — Mid-Day Meals", date: "2025-05-29" },
-    { name: "Rajesh Iyer", email: "rajesh.iyer@gmail.com", phone: "93210XXXXX", amount: 5000, cause: "All Causes", date: "2025-05-28" },
-    { name: "Swati Mishra", email: "swati.m@hotmail.com", phone: "87878XXXXX", amount: 15000, cause: "Bright Futures Education Fund", date: "2025-05-27" },
-    { name: "Nitin Bhasin", email: "nitin.b@gmail.com", phone: "99001XXXXX", amount: 2500, cause: "Empowering Women Artisans", date: "2025-05-26" },
 ];
+
+const STORAGE_KEY = "sevabharat_donations";
 
 const fmt = (n) => "₹" + (n >= 100000 ? (n / 100000).toFixed(1) + "L" : n >= 1000 ? (n / 1000).toFixed(0) + "K" : n);
 const fmtFull = (n) => "₹" + n.toLocaleString("en-IN");
@@ -256,7 +243,7 @@ export default function App() {
     const [adminAuth, setAdminAuth] = useState(false);
     const [adminForm, setAdminForm] = useState({ u: "", p: "" });
     const [adminError, setAdminError] = useState("");
-    const [donations, setDonations] = useState(DONOR_LOG); // Start with local data to prevent white screen
+    const [donations, setDonations] = useState(DONOR_LOG);
     const [notification, setNotification] = useState(null);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
@@ -267,14 +254,14 @@ export default function App() {
                     .from('donations')
                     .select('*')
                     .order('date', { ascending: false });
-                
+
                 if (error) {
                     console.warn('Using local fallback. Supabase error:', error.message);
                 } else if (data && data.length > 0) {
                     setDonations(data);
                 }
             } catch (err) {
-                console.warn('Supabase not initialized yet. Using local data.');
+                console.warn('Supabase not initialized. Using local data.');
             }
         };
         fetchDonations();
@@ -661,7 +648,7 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
     const selectedCause = causeData || { title: "All Causes", description: "Your donation will be split across all 6 cause categories.", image: null };
     const finalAmount = form.amount || form.custom;
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!form.name || !form.email || !form.phone || !finalAmount) {
             showNotif("Please fill in all required fields.", "error");
             return;
@@ -670,34 +657,100 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
             showNotif("Please enter a valid 10-digit mobile number.", "error");
             return;
         }
+
         setLoading(true);
-        const newDonor = {
-            name: form.name, 
-            email: form.email, 
-            phone: form.phone,
-            amount: parseInt(finalAmount), 
-            cause: form.cause,
-            date: new Date().toISOString().split("T")[0]
-        };
 
-        const saveDonation = async () => {
-            const { data, error } = await supabase
-                .from('donations')
-                .insert([newDonor])
-                .select();
+        try {
+            // 1. Create order on the backend
+            console.log("Requesting order from backend...");
+            const API_URL = import.meta.env.VITE_API_URL;
 
-            if (error) {
-                console.error('Error saving donation:', error);
-                showNotif(`Storage Error: ${error.message}`, "error");
-                setDonations(prev => [newDonor, ...prev]);
-            } else {
-                setDonations(prev => [newDonor, ...prev]);
+            const orderRes = await fetch(`${API_URL}/create-order`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount: parseInt(finalAmount) }),
+            });
+            const order = await orderRes.json();
+            console.log("Order received:", order);
+
+            if (!orderRes.ok) throw new Error(order.error || "Failed to create order");
+
+            if (!window.Razorpay) {
+                throw new Error("Razorpay SDK not loaded. Please check your internet connection or script tag in index.html");
             }
-            setLoading(false);
-            setSubmitted(true);
-        };
 
-        saveDonation();
+            const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+            if (!razorpayKey || razorpayKey === "YOUR_RAZORPAY_KEY_ID") {
+                console.warn("Razorpay Key ID is not configured correctly in .env");
+            }
+
+            // 2. Open Razorpay Checkout
+            const options = {
+                key: razorpayKey || "YOUR_RAZORPAY_KEY_ID",
+                amount: order.amount,
+                currency: order.currency,
+                name: "SevaBharat",
+                description: `Donation for ${form.cause}`,
+                order_id: order.id,
+                handler: async function (response) {
+                    // 3. Save donation on success
+                    const newDonor = {
+                        name: form.name,
+                        email: form.email,
+                        phone: form.phone,
+                        amount: parseInt(finalAmount),
+                        cause: form.cause,
+                        date: new Date().toISOString().split("T")[0],
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature,
+                    };
+
+                    const { error } = await supabase.from('donations').insert([newDonor]);
+
+                    if (error) {
+                        console.error('Error saving donation:', error);
+                        showNotif(`Storage Error: ${error.message}`, "error");
+                    } else {
+                        setDonations(prev => [newDonor, ...prev]);
+                        // Send email
+                        await fetch(`${API_URL}/send-email`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                name: newDonor.name,
+                                email: newDonor.email,
+                                amount: newDonor.amount,
+                            }),
+                        });
+                    }
+                    setLoading(false);
+                    setSubmitted(true);
+                },
+                prefill: {
+                    name: form.name,
+                    email: form.email,
+                    contact: form.phone,
+                },
+                theme: { color: "#1a7a4a" },
+                modal: {
+                    ondismiss: function () {
+                        setLoading(false);
+                    }
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                showNotif(`Payment Failed: ${response.error.description}`, "error");
+                setLoading(false);
+            });
+            rzp.open();
+        } catch (err) {
+            console.error(err);
+            showNotif(`Error: ${err.message}`, "error");
+            setLoading(false);
+        }
     };
 
     if (submitted) {
@@ -829,7 +882,6 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
         </div>
     );
 }
-
 function AboutPage() {
     return (
         <div className="fade-in">

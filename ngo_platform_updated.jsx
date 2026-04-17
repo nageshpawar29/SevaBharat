@@ -256,7 +256,7 @@ export default function App() {
                     .from('donations')
                     .select('*')
                     .order('date', { ascending: false });
-                
+
                 if (error) {
                     console.warn('Using local fallback. Supabase error:', error.message);
                 } else if (data && data.length > 0) {
@@ -659,13 +659,15 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
             showNotif("Please enter a valid 10-digit mobile number.", "error");
             return;
         }
-        
+
         setLoading(true);
 
         try {
             // 1. Create order on the backend
             console.log("Requesting order from backend...");
-            const orderRes = await fetch("http://localhost:5000/create-order", {
+            const API_URL = import.meta.env.VITE_API_URL;
+
+            const orderRes = await fetch(`${API_URL}/create-order`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount: parseInt(finalAmount) }),
@@ -707,7 +709,7 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
                     };
 
                     const { error } = await supabase.from('donations').insert([newDonor]);
-                    
+
                     if (error) {
                         console.error('Error saving donation:', error);
                         showNotif(`Storage Error: ${error.message}`, "error");
@@ -734,7 +736,7 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
                 },
                 theme: { color: "#1a7a4a" },
                 modal: {
-                    ondismiss: function() {
+                    ondismiss: function () {
                         setLoading(false);
                     }
                 }
