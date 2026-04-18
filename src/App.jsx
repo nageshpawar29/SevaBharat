@@ -265,7 +265,36 @@ export default function App() {
             }
         };
         fetchDonations();
-    }, []);
+
+        // Handle Supabase Auth Change
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session?.user) {
+                const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL;
+                if (session.user.email === allowedEmail) {
+                    setAdminAuth(true);
+                    if (page === "admin-login") navigate("admin");
+                } else {
+                    setAdminAuth(false);
+                    await supabase.auth.signOut();
+                    showNotif(`Unauthorized: ${session.user.email} is not allowed.`, "error");
+                    navigate("home");
+                }
+            } else {
+                setAdminAuth(false);
+            }
+        });
+
+        // Initial session check
+        const checkInitialSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.email === import.meta.env.VITE_ALLOWED_ADMIN_EMAIL) {
+                setAdminAuth(true);
+            }
+        };
+        checkInitialSession();
+
+        return () => subscription.unsubscribe();
+    }, [page]);
 
     const navigate = (p, data) => {
         setPage(p);
@@ -394,9 +423,9 @@ export default function App() {
             {page === "donate" && <DonatePage navigate={navigate} causeData={donationCause} donations={donations} setDonations={setDonations} showNotif={showNotif} />}
             {page === "about" && <AboutPage />}
             {page === "awards" && <AwardsPage />}
-            {page === "admin-login" && <AdminLogin adminForm={adminForm} setAdminForm={setAdminForm} adminError={adminError} setAdminError={setAdminError} setAdminAuth={setAdminAuth} navigate={navigate} />}
+            {page === "admin-login" && <AdminLogin setAdminAuth={setAdminAuth} navigate={navigate} />}
             {page === "admin" && adminAuth && <AdminDashboard donations={donations} setDonations={setDonations} navigate={navigate} showNotif={showNotif} />}
-            {page === "admin" && !adminAuth && <AdminLogin adminForm={adminForm} setAdminForm={setAdminForm} adminError={adminError} setAdminError={setAdminError} setAdminAuth={setAdminAuth} navigate={navigate} />}
+            {page === "admin" && !adminAuth && <AdminLogin setAdminAuth={setAdminAuth} navigate={navigate} />}
 
             {/* Footer */}
             <footer style={{ background: "#0d1f15", color: "#9dbfa8", padding: "48px 20px 24px", marginTop: 60 }}>
@@ -1005,21 +1034,23 @@ function AwardsPage() {
     );
 }
 
-function AdminLogin({ adminForm, setAdminForm, adminError, setAdminError, setAdminAuth, navigate }) {
+function AdminLogin({ setAdminAuth, navigate }) {
     const [loading, setLoading] = useState(false);
 
-    const handleLogin = () => {
+    const handleGoogleLogin = async () => {
         setLoading(true);
-        setTimeout(() => {
-            if (adminForm.u === "admin" && adminForm.p === "seva@2025") {
-                setAdminAuth(true);
-                navigate("admin");
-                setAdminError("");
-            } else {
-                setAdminError("Invalid credentials. Hint: admin / seva@2025");
-            }
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin
+                }
+            });
+            if (error) throw error;
+        } catch (err) {
+            console.error("Login error:", err.message);
             setLoading(false);
-        }, 1000);
+        }
     };
 
     return (
@@ -1028,22 +1059,24 @@ function AdminLogin({ adminForm, setAdminForm, adminError, setAdminError, setAdm
                 <div style={{ textAlign: "center", marginBottom: 32 }}>
                     <div style={{ width: 60, height: 60, borderRadius: 16, background: "linear-gradient(135deg,#1a7a4a,#2ecc71)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, margin: "0 auto 16px" }}>🔐</div>
                     <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, marginBottom: 6 }}>Admin Portal</div>
-                    <div style={{ fontSize: 14, color: COLORS.textMuted }}>SevaBharat Management Console</div>
+                    <div style={{ fontSize: 14, color: COLORS.textMuted }}>Authorized Personnel Only</div>
                 </div>
                 <div style={{ display: "grid", gap: 14 }}>
-                    <input className="input-field" placeholder="Username" value={adminForm.u}
-                        onChange={e => setAdminForm(f => ({ ...f, u: e.target.value }))}
-                        onKeyDown={e => e.key === "Enter" && handleLogin()} />
-                    <input className="input-field" type="password" placeholder="Password" value={adminForm.p}
-                        onChange={e => setAdminForm(f => ({ ...f, p: e.target.value }))}
-                        onKeyDown={e => e.key === "Enter" && handleLogin()} />
-                    {adminError && <div style={{ background: "#fef0ef", border: "1px solid #f5c6c2", borderRadius: 8, padding: "10px 14px", color: "#c0392b", fontSize: 13 }}>{adminError}</div>}
-                    <button className="btn-primary" onClick={handleLogin} disabled={loading} style={{ padding: 14, fontSize: 16 }}>
-                        {loading ? "Verifying…" : "Sign In to Dashboard"}
+                    <button className="btn-primary" onClick={handleGoogleLogin} disabled={loading} 
+                        style={{ padding: 14, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, background: "white", color: COLORS.text, border: "1.5px solid #d4e8da" }}>
+                        {loading ? "Connecting…" : (
+                            <>
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google" />
+                                Sign In with Google
+                            </>
+                        )}
                     </button>
+                    <div style={{ fontSize: 12, color: COLORS.textMuted, textAlign: "center", marginTop: 10 }}>
+                        Login restricted to: <strong>{import.meta.env.VITE_ALLOWED_ADMIN_EMAIL}</strong>
+                    </div>
                 </div>
-                <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: COLORS.textMuted }}>
-                    JWT Authentication · Secure Session · Role-Based Access
+                <div style={{ textAlign: "center", marginTop: 24, fontSize: 11, color: COLORS.textMuted, opacity: 0.7 }}>
+                    Secure OAuth 2.0 · Supabase Auth · Restricted Access
                 </div>
             </div>
         </div>
@@ -1067,12 +1100,18 @@ function AdminDashboard({ donations, setDonations, navigate, showNotif }) {
                 <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                         <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: "white" }}>Admin Dashboard</div>
-                        <div style={{ fontSize: 13, color: "#7a9e87" }}>SevaBharat Management Portal</div>
+                        <div style={{ fontSize: 13, color: "#7a9e87" }}>Logged in as: {import.meta.env.VITE_ALLOWED_ADMIN_EMAIL}</div>
                     </div>
-                    <button onClick={() => navigate("home")}
-                        style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "9px 18px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
-                        ← Back to Site
-                    </button>
+                    <div style={{ display: "flex", gap: 12 }}>
+                        <button onClick={() => navigate("home")}
+                            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "9px 18px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
+                            ← Back to Site
+                        </button>
+                        <button onClick={async () => { await supabase.auth.signOut(); navigate("home"); showNotif("Logged out successfully."); }}
+                            style={{ background: "#e74c3c", color: "white", border: "none", padding: "9px 18px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 600 }}>
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
             </div>
 
