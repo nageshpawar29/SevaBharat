@@ -58,9 +58,9 @@ This guide explains how to deploy your NGO platform to keep it public and fully 
 
 ---
 
-## 4. Final Updates
+## 5. Maintenance & Updates
 
-- **Razorpay**: In your Razorpay dashboard, add your public URLs to the "Whitelisted Domains" if necessary (usually not needed for test mode).
-- **Supabase**: Ensure your Site URL in Supabase Auth settings matches your new Vercel URL.
+- **Razorpay Account Update (April 2025)**: The project was migrated to a new Razorpay account. All environment variables in `.env`, Render, and Vercel have been updated.
+- **Security**: The `.env` file is excluded from Git to prevent credential leaks. Always use `.env.example` as a template for new environments.
 
-Your app is now public! 🎉
+Your app is now public and up to date! 🎉
