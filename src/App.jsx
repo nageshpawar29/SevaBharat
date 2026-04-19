@@ -241,6 +241,7 @@ export default function App() {
     const [filterCat, setFilterCat] = useState("All");
     const [donationCause, setDonationCause] = useState(null);
     const [adminAuth, setAdminAuth] = useState(false);
+    const [adminEmail, setAdminEmail] = useState("");
     const [adminForm, setAdminForm] = useState({ u: "", p: "" });
     const [adminError, setAdminError] = useState("");
     const [donations, setDonations] = useState(DONOR_LOG);
@@ -269,26 +270,21 @@ export default function App() {
         // Handle Supabase Auth Change
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
-                const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL;
-                if (session.user.email === allowedEmail) {
-                    setAdminAuth(true);
-                    if (page === "admin-login") navigate("admin");
-                } else {
-                    setAdminAuth(false);
-                    await supabase.auth.signOut();
-                    showNotif(`Unauthorized: ${session.user.email} is not allowed.`, "error");
-                    navigate("home");
-                }
+                setAdminAuth(true);
+                setAdminEmail(session.user.email);
+                if (page === "admin-login") navigate("admin");
             } else {
                 setAdminAuth(false);
+                setAdminEmail("");
             }
         });
 
         // Initial session check
         const checkInitialSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user?.email === import.meta.env.VITE_ALLOWED_ADMIN_EMAIL) {
+            if (session?.user) {
                 setAdminAuth(true);
+                setAdminEmail(session.user.email);
             }
         };
         checkInitialSession();
@@ -424,7 +420,7 @@ export default function App() {
             {page === "about" && <AboutPage />}
             {page === "awards" && <AwardsPage />}
             {page === "admin-login" && <AdminLogin setAdminAuth={setAdminAuth} navigate={navigate} />}
-            {page === "admin" && adminAuth && <AdminDashboard donations={donations} setDonations={setDonations} navigate={navigate} showNotif={showNotif} />}
+            {page === "admin" && adminAuth && <AdminDashboard adminEmail={adminEmail} donations={donations} setDonations={setDonations} navigate={navigate} showNotif={showNotif} />}
             {page === "admin" && !adminAuth && <AdminLogin setAdminAuth={setAdminAuth} navigate={navigate} />}
 
             {/* Footer */}
@@ -1072,7 +1068,7 @@ function AdminLogin({ setAdminAuth, navigate }) {
                         )}
                     </button>
                     <div style={{ fontSize: 12, color: COLORS.textMuted, textAlign: "center", marginTop: 10 }}>
-                        Login restricted to: <strong>{import.meta.env.VITE_ALLOWED_ADMIN_EMAIL}</strong>
+                        Sign in to access the administrator dashboard.
                     </div>
                 </div>
                 <div style={{ textAlign: "center", marginTop: 24, fontSize: 11, color: COLORS.textMuted, opacity: 0.7 }}>
@@ -1083,7 +1079,7 @@ function AdminLogin({ setAdminAuth, navigate }) {
     );
 }
 
-function AdminDashboard({ donations, setDonations, navigate, showNotif }) {
+function AdminDashboard({ adminEmail, donations, setDonations, navigate, showNotif }) {
     const [activeTab, setActiveTab] = useState("overview");
     const [campaigns, setCampaigns] = useState(CAUSES);
     const [newCampaign, setNewCampaign] = useState({ title: "", category: "Education", goal: "", description: "" });
@@ -1099,8 +1095,8 @@ function AdminDashboard({ donations, setDonations, navigate, showNotif }) {
             <div style={{ background: "linear-gradient(135deg, #0d1f15, #1a3d26)", padding: "24px 20px" }}>
                 <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: "white" }}>Admin Dashboard</div>
-                        <div style={{ fontSize: 13, color: "#7a9e87" }}>Logged in as: {import.meta.env.VITE_ALLOWED_ADMIN_EMAIL}</div>
+                        <div style={{ fontSize: 26, color: "white" }}>Admin Dashboard</div>
+                        <div style={{ fontSize: 13, color: "#7a9e87" }}>Logged in as: {adminEmail}</div>
                     </div>
                     <div style={{ display: "flex", gap: 12 }}>
                         <button onClick={() => navigate("home")}
