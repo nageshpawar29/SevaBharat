@@ -189,11 +189,7 @@ const CAUSES = [
     },
 ];
 
-const TEAM = [
-    { name: "Nagesh Pawar", role: "Founder & CEO", initials: "PN", color: "#1a7a4a" },
-    { name: "Akash More", role: "Head of Operations", initials: "AM", color: "#2980b9" },
-    { name: "Sangram Karanjawane", role: "Community Partnerships", initials: "SR", color: "#8e44ad" },
-];
+
 
 const AWARDS = [
     { title: "National Social Impact Award", year: "2024", org: "Ministry of Social Justice, GoI", icon: "🏆" },
@@ -978,22 +974,7 @@ function AboutPage() {
                     </div>
                 </div>
 
-                {/* Team */}
-                <div>
-                    <div className="section-title" style={{ textAlign: "center", marginBottom: 8 }}>Meet the Team</div>
-                    <div className="section-sub" style={{ textAlign: "center", marginBottom: 40 }}>Passionate people committed to India's transformation</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 24 }}>
-                        {TEAM.map(t => (
-                            <div key={t.name} className="card hover-lift" style={{ padding: 28, textAlign: "center" }}>
-                                <div style={{ width: 70, height: 70, borderRadius: "50%", background: `${t.color}22`, border: `3px solid ${t.color}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontWeight: 700, fontSize: 22, color: t.color }}>
-                                    {t.initials}
-                                </div>
-                                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{t.name}</div>
-                                <div style={{ fontSize: 13, color: COLORS.textMuted }}>{t.role}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+
             </div>
         </div>
     );
