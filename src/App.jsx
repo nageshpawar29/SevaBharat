@@ -247,8 +247,15 @@ export default function App() {
     const [donations, setDonations] = useState(DONOR_LOG);
     const [notification, setNotification] = useState(null);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [hasDetectedRoute, setHasDetectedRoute] = useState(false);
 
+    // Initial Route Detection
     useEffect(() => {
+        const path = window.location.pathname.replace(/^\/|\/$/g, '');
+        if (path === "admin-login") setPage("admin-login");
+        else if (path === "admin") setPage("admin");
+        setHasDetectedRoute(true);
+    }, []);
         const fetchDonations = async () => {
             try {
                 const { data, error } = await supabase
