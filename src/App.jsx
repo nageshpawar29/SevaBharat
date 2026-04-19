@@ -256,6 +256,7 @@ export default function App() {
         else if (path === "admin") setPage("admin");
         setHasDetectedRoute(true);
     }, []);
+    useEffect(() => {
         const fetchDonations = async () => {
             try {
                 const { data, error } = await supabase
