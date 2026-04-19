@@ -277,11 +277,12 @@ export default function App() {
         // Handle Supabase Auth Change
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
-                const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL;
+                const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL || "nageshpawar2902@gmail.com";
                 if (session.user.email === allowedEmail) {
                     setAdminAuth(true);
                     setAdminEmail(session.user.email);
-                    if (page === "admin-login") navigate("admin");
+                    // Automatically navigate to admin dashboard upon successful login or detection of session
+                    if (["home", "admin-login"].includes(page)) navigate("admin");
                 } else {
                     setAdminAuth(false);
                     setAdminEmail("");
@@ -299,7 +300,7 @@ export default function App() {
         const checkInitialSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
-                const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL;
+                const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL || "nageshpawar2902@gmail.com";
                 if (session.user.email === allowedEmail) {
                     setAdminAuth(true);
                     setAdminEmail(session.user.email);
@@ -1058,7 +1059,7 @@ function AdminLogin({ setAdminAuth, navigate }) {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/admin-login`
+                    redirectTo: window.location.origin
                 }
             });
             if (error) throw error;

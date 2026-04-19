@@ -283,7 +283,8 @@ export default function App() {
                 if (session.user.email === allowedEmail) {
                     setAdminAuth(true);
                     setAdminEmail(session.user.email);
-                    if (page === "admin-login") navigate("admin");
+                    // Automatically navigate to admin dashboard upon successful login or detection of session
+                    if (["home", "admin-login"].includes(page)) navigate("admin");
                 } else {
                     setAdminAuth(false);
                     setAdminEmail("");
@@ -1060,7 +1061,7 @@ function AdminLogin({ setAdminAuth, navigate }) {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/admin-login`
+                    redirectTo: window.location.origin
                 }
             });
             if (error) throw error;
