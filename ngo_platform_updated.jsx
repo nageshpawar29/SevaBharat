@@ -272,9 +272,18 @@ export default function App() {
         // Handle Supabase Auth Change
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
-                setAdminAuth(true);
-                setAdminEmail(session.user.email);
-                if (page === "admin-login") navigate("admin");
+                const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL || "nageshpawar2902@gmail.com";
+                if (session.user.email === allowedEmail) {
+                    setAdminAuth(true);
+                    setAdminEmail(session.user.email);
+                    if (page === "admin-login") navigate("admin");
+                } else {
+                    setAdminAuth(false);
+                    setAdminEmail("");
+                    await supabase.auth.signOut();
+                    showNotif(`Unauthorized: ${session.user.email} is not allowed.`, "error");
+                    navigate("home");
+                }
             } else {
                 setAdminAuth(false);
                 setAdminEmail("");
@@ -285,8 +294,11 @@ export default function App() {
         const checkInitialSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
-                setAdminAuth(true);
-                setAdminEmail(session.user.email);
+                const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL || "nageshpawar2902@gmail.com";
+                if (session.user.email === allowedEmail) {
+                    setAdminAuth(true);
+                    setAdminEmail(session.user.email);
+                }
             }
         };
         checkInitialSession();
