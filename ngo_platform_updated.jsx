@@ -1041,7 +1041,7 @@ function AdminLogin({ setAdminAuth, navigate }) {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin
+                    redirectTo: `${window.location.origin}/admin-login`
                 }
             });
             if (error) throw error;
