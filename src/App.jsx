@@ -439,9 +439,9 @@ export default function App() {
             {page === "donate" && <DonatePage navigate={navigate} causeData={donationCause} donations={donations} setDonations={setDonations} showNotif={showNotif} />}
             {page === "about" && <AboutPage />}
             {page === "awards" && <AwardsPage />}
-            {page === "admin-login" && <AdminLogin setAdminAuth={setAdminAuth} navigate={navigate} />}
+            {page === "admin-login" && <AdminLogin setShowNotif={showNotif} />}
             {page === "admin" && adminAuth && <AdminDashboard adminEmail={adminEmail} donations={donations} setDonations={setDonations} navigate={navigate} showNotif={showNotif} />}
-            {page === "admin" && !adminAuth && <AdminLogin setAdminAuth={setAdminAuth} navigate={navigate} />}
+            {page === "admin" && !adminAuth && <AdminLogin setShowNotif={showNotif} />}
 
             {/* Footer */}
             <footer style={{ background: "#0d1f15", color: "#9dbfa8", padding: "48px 20px 24px", marginTop: 60 }}>
@@ -1050,21 +1050,41 @@ function AwardsPage() {
     );
 }
 
-function AdminLogin({ setAdminAuth, navigate }) {
+function AdminLogin({ setShowNotif }) {
     const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+
+    const handleEmailLogin = async (e) => {
+        if (e) e.preventDefault();
+        if (!email || !password) return;
+        setLoading(true);
+        setError("");
+        try {
+            const { error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+            if (authError) throw authError;
+        } catch (err) {
+            setError(err.message);
+            setLoading(false);
+        }
+    };
 
     const handleGoogleLogin = async () => {
         setLoading(true);
         try {
-            const { error } = await supabase.auth.signInWithOAuth({
+            const { error: authError } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: window.location.origin
                 }
             });
-            if (error) throw error;
+            if (authError) throw authError;
         } catch (err) {
-            console.error("Login error:", err.message);
+            setError(err.message);
             setLoading(false);
         }
     };
@@ -1075,22 +1095,41 @@ function AdminLogin({ setAdminAuth, navigate }) {
                 <div style={{ textAlign: "center", marginBottom: 32 }}>
                     <div style={{ width: 60, height: 60, borderRadius: 16, background: "linear-gradient(135deg,#1a7a4a,#2ecc71)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, margin: "0 auto 16px" }}>🔐</div>
                     <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, marginBottom: 6 }}>Admin Portal</div>
-                    <div style={{ fontSize: 14, color: COLORS.textMuted }}>Authorized Personnel Only</div>
+                    <div style={{ fontSize: 14, color: COLORS.textMuted }}>Sign in to manage SevaBharat</div>
                 </div>
-                <div style={{ display: "grid", gap: 14 }}>
-                    <button className="btn-primary" onClick={handleGoogleLogin} disabled={loading} 
-                        style={{ padding: 14, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, background: "white", color: COLORS.text, border: "1.5px solid #d4e8da" }}>
-                        {loading ? "Connecting…" : (
-                            <>
-                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google" />
-                                Sign In with Google
-                            </>
-                        )}
-                    </button>
-                    <div style={{ fontSize: 12, color: COLORS.textMuted, textAlign: "center", marginTop: 10 }}>
-                        Sign in to access the administrator dashboard.
+
+                {error && (
+                    <div style={{ background: "#fef2f2", color: "#b91c1c", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 20, border: "1px solid #fee2e2" }}>
+                        {error}
                     </div>
+                )}
+
+                <form onSubmit={handleEmailLogin} style={{ display: "grid", gap: 16 }}>
+                    <div>
+                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.text, marginBottom: 6 }}>Email Address</label>
+                        <input className="input-field" type="email" placeholder="admin@example.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} style={{ width: "100%" }} />
+                    </div>
+                    <div>
+                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.text, marginBottom: 6 }}>Password</label>
+                        <input className="input-field" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} style={{ width: "100%" }} />
+                    </div>
+                    <button className="btn-primary" type="submit" disabled={loading} style={{ padding: 14, fontSize: 15, width: "100%", marginTop: 8 }}>
+                        {loading ? "Authenticating…" : "Sign In"}
+                    </button>
+                </form>
+
+                <div style={{ margin: "24px 0", display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ flex: 1, height: 1, background: "#f0f4f2" }} />
+                    <div style={{ fontSize: 12, color: COLORS.textMuted }}>OR</div>
+                    <div style={{ flex: 1, height: 1, background: "#f0f4f2" }} />
                 </div>
+
+                <button className="btn-outline" onClick={handleGoogleLogin} disabled={loading} 
+                    style={{ width: "100%", padding: 12, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: "white", border: "1px solid #d4e8da" }}>
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google" />
+                    Continue with Google
+                </button>
+                
                 <div style={{ textAlign: "center", marginTop: 24, fontSize: 11, color: COLORS.textMuted, opacity: 0.7 }}>
                     Secure OAuth 2.0 · Supabase Auth · Restricted Access
                 </div>
@@ -1098,6 +1137,7 @@ function AdminLogin({ setAdminAuth, navigate }) {
         </div>
     );
 }
+
 
 function AdminDashboard({ adminEmail, donations, setDonations, navigate, showNotif }) {
     const [activeTab, setActiveTab] = useState("overview");
