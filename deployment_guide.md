@@ -58,6 +58,10 @@ This guide explains how to deploy your NGO platform to keep it public and fully 
 
 ---
 
+## 4. Production URL
+
+Your app is officially live at: [https://seva-bharat.vercel.app/](https://seva-bharat.vercel.app/)
+
 ## 5. Maintenance & Updates
 
 - **Razorpay Account Update (April 2025)**: The project was migrated to a new Razorpay account. All environment variables in `.env`, Render, and Vercel have been updated.
