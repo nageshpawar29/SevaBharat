@@ -220,6 +220,31 @@ const DONOR_LOG = [
 
 const STORAGE_KEY = "sevabharat_donations";
 
+const SUCCESS_STORIES = [
+    {
+        id: 1,
+        title: "Kiran's Journey to School",
+        category: "Education",
+        text: "Kiran, a 10-year-old from a remote village in Jharkhand, was nearly forced into child labor. Thanks to the Bright Futures Education Fund, she is now the top of her class and dreams of becoming a doctor.",
+        image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&q=80",
+        ngo: "Shiksha Daan Foundation"
+    },
+    {
+        id: 2,
+        title: "Clean Water in Odisha",
+        category: "Healthcare",
+        text: "After the installation of solar-powered water filters, the incidence of water-borne diseases in the village of Ganjam has dropped by 80%. Women no longer have to walk 4km for water.",
+        image: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&q=80",
+        ngo: "Jal Jeevan Trust"
+    }
+];
+
+const PROOF_OF_WORK = [
+    { title: "80G Tax Exemption Certificate", date: "2024-05-10", icon: "📄" },
+    { title: "FCRA Audit Report 2023", date: "2024-03-15", icon: "📊" },
+    { title: "Assam Flood Relief Video Report", date: "2025-07-20", icon: "🎥" },
+];
+
 const fmt = (n) => "₹" + (n >= 100000 ? (n / 100000).toFixed(1) + "L" : n >= 1000 ? (n / 1000).toFixed(0) + "K" : n);
 const fmtFull = (n) => "₹" + n.toLocaleString("en-IN");
 const pct = (r, g) => Math.min(100, Math.round((r / g) * 100));
@@ -238,6 +263,7 @@ export default function App() {
     const [donationCause, setDonationCause] = useState(null);
     const [adminAuth, setAdminAuth] = useState(false);
     const [adminEmail, setAdminEmail] = useState("");
+    const [user, setUser] = useState(null);
     const [adminForm, setAdminForm] = useState({ u: "", p: "" });
     const [adminError, setAdminError] = useState("");
     const [donations, setDonations] = useState(DONOR_LOG);
@@ -250,6 +276,8 @@ export default function App() {
         const path = window.location.pathname.replace(/^\/|\/$/g, '');
         if (path === "admin-login") setPage("admin-login");
         else if (path === "admin") setPage("admin");
+        else if (path === "login") setPage("login");
+        else if (path === "dashboard") setPage("dashboard");
         setHasDetectedRoute(true);
     }, []);
     useEffect(() => {
@@ -274,20 +302,19 @@ export default function App() {
         // Handle Supabase Auth Change
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
+                setUser(session.user);
                 const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL || "nageshpawar2902@gmail.com";
                 if (session.user.email === allowedEmail) {
                     setAdminAuth(true);
                     setAdminEmail(session.user.email);
-                    // Automatically navigate to admin dashboard upon successful login or detection of session
-                    if (["home", "admin-login"].includes(page)) navigate("admin");
+                    if (["home", "admin-login", "login"].includes(page)) navigate("admin");
                 } else {
                     setAdminAuth(false);
                     setAdminEmail("");
-                    await supabase.auth.signOut();
-                    showNotif(`Unauthorized: ${session.user.email} is not allowed.`, "error");
-                    navigate("home");
+                    if (["home", "admin-login", "login"].includes(page)) navigate("dashboard");
                 }
             } else {
+                setUser(null);
                 setAdminAuth(false);
                 setAdminEmail("");
             }
@@ -297,6 +324,7 @@ export default function App() {
         const checkInitialSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
+                setUser(session.user);
                 const allowedEmail = import.meta.env.VITE_ALLOWED_ADMIN_EMAIL || "nageshpawar2902@gmail.com";
                 if (session.user.email === allowedEmail) {
                     setAdminAuth(true);
@@ -408,7 +436,17 @@ export default function App() {
                             </button>
                         ))}
                         <button className="btn-primary" onClick={() => navigate("donate")} style={{ marginLeft: 8, padding: "9px 20px", fontSize: 14 }}>Donate Now</button>
-                        <button onClick={() => navigate("admin-login")} style={{ marginLeft: 4, padding: "9px 14px", borderRadius: 8, background: "#f0f4f2", color: COLORS.textMuted, fontSize: 13, fontWeight: 500 }}>Admin</button>
+                        {user ? (
+                            <button onClick={() => navigate(adminAuth ? "admin" : "dashboard")} 
+                                style={{ marginLeft: 4, padding: "9px 14px", borderRadius: 8, background: COLORS.primaryLight, color: "white", fontSize: 13, fontWeight: 600 }}>
+                                {adminAuth ? "Admin Dashboard" : "My Account"}
+                            </button>
+                        ) : (
+                            <button onClick={() => navigate("login")} 
+                                style={{ marginLeft: 4, padding: "9px 14px", borderRadius: 8, background: "#f0f4f2", color: COLORS.textMuted, fontSize: 13, fontWeight: 500 }}>
+                                Login
+                            </button>
+                        )}
                     </div>
                     <button className="mobile-menu-btn" onClick={() => setShowMobileMenu(!showMobileMenu)}
                         style={{ background: "none", border: "none", fontSize: 24, color: COLORS.text, display: "none", flexDirection: "column", gap: 5, padding: 8 }}>
@@ -426,6 +464,17 @@ export default function App() {
                             </button>
                         ))}
                         <button className="btn-primary" onClick={() => navigate("donate")} style={{ marginTop: 12, width: "100%" }}>Donate Now</button>
+                        {user ? (
+                            <button onClick={() => navigate(adminAuth ? "admin" : "dashboard")} 
+                                style={{ marginTop: 12, width: "100%", padding: "12px", borderRadius: 8, background: COLORS.primaryLight, color: "white", fontWeight: 600 }}>
+                                {adminAuth ? "Admin Dashboard" : "My Account"}
+                            </button>
+                        ) : (
+                            <button onClick={() => navigate("login")} 
+                                style={{ marginTop: 12, width: "100%", padding: "12px", borderRadius: 8, background: "#f0f4f2", color: COLORS.textMuted }}>
+                                Login / Sign Up
+                            </button>
+                        )}
                     </div>
                 )}
             </nav>
@@ -436,9 +485,10 @@ export default function App() {
             {page === "donate" && <DonatePage navigate={navigate} causeData={donationCause} donations={donations} setDonations={setDonations} showNotif={showNotif} />}
             {page === "about" && <AboutPage />}
             {page === "awards" && <AwardsPage />}
-            {page === "admin-login" && <AdminLogin setShowNotif={showNotif} />}
+            {(page === "admin-login" || page === "login") && <AuthPage setShowNotif={showNotif} />}
             {page === "admin" && adminAuth && <AdminDashboard adminEmail={adminEmail} donations={donations} setDonations={setDonations} navigate={navigate} showNotif={showNotif} />}
-            {page === "admin" && !adminAuth && <AdminLogin setShowNotif={showNotif} />}
+            {page === "admin" && !adminAuth && <AuthPage setShowNotif={showNotif} />}
+            {page === "dashboard" && user && <UserDashboard user={user} donations={donations} navigate={navigate} showNotif={showNotif} />}
 
             {/* Footer */}
             <footer style={{ background: "#0d1f15", color: "#9dbfa8", padding: "48px 20px 24px", marginTop: 60 }}>
@@ -1032,23 +1082,33 @@ function AwardsPage() {
     );
 }
 
-function AdminLogin({ setShowNotif }) {
+function AuthPage({ setShowNotif }) {
+    const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
     const [error, setError] = useState("");
 
-    const handleEmailLogin = async (e) => {
+    const handleAuth = async (e) => {
         if (e) e.preventDefault();
         if (!email || !password) return;
         setLoading(true);
         setError("");
         try {
-            const { error: authError } = await supabase.auth.signInWithPassword({
-                email,
-                password
-            });
-            if (authError) throw authError;
+            if (isLogin) {
+                const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+                if (authError) throw authError;
+                setShowNotif("Logged in successfully!");
+            } else {
+                const { error: authError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { full_name: name } }
+                });
+                if (authError) throw authError;
+                setShowNotif("Account created! Please check your email for verification.", "info");
+            }
         } catch (err) {
             setError(err.message);
             setLoading(false);
@@ -1060,9 +1120,7 @@ function AdminLogin({ setShowNotif }) {
         try {
             const { error: authError } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: {
-                    redirectTo: window.location.origin
-                }
+                options: { redirectTo: window.location.origin }
             });
             if (authError) throw authError;
         } catch (err) {
@@ -1073,30 +1131,43 @@ function AdminLogin({ setShowNotif }) {
 
     return (
         <div className="fade-in" style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-            <div className="card" style={{ width: "100%", maxWidth: 400, padding: 40 }}>
+            <div className="card" style={{ width: "100%", maxWidth: 440, padding: 40 }}>
                 <div style={{ textAlign: "center", marginBottom: 32 }}>
-                    <div style={{ width: 60, height: 60, borderRadius: 16, background: "linear-gradient(135deg,#1a7a4a,#2ecc71)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, margin: "0 auto 16px" }}>🔐</div>
-                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, marginBottom: 6 }}>Admin Portal</div>
-                    <div style={{ fontSize: 14, color: COLORS.textMuted }}>Sign in to manage SevaBharat</div>
+                    <div style={{ width: 64, height: 64, borderRadius: 18, background: "linear-gradient(135deg,#1a7a4a,#2ecc71)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, margin: "0 auto 16px", color: "white" }}>
+                        {isLogin ? "🔐" : "🌱"}
+                    </div>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, marginBottom: 8 }}>{isLogin ? "Welcome Back" : "Join SevaBharat"}</div>
+                    <div style={{ fontSize: 14, color: COLORS.textMuted }}>{isLogin ? "Sign in to track your donations and impact" : "Create an account to start your giving journey"}</div>
+                </div>
+
+                <div style={{ display: "flex", background: "#f0f4f2", borderRadius: 10, padding: 4, marginBottom: 24 }}>
+                    <button onClick={() => setIsLogin(true)} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: isLogin ? "white" : "transparent", color: isLogin ? COLORS.primary : COLORS.textMuted, fontWeight: 600, cursor: "pointer", boxShadow: isLogin ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s" }}>Login</button>
+                    <button onClick={() => setIsLogin(false)} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: !isLogin ? "white" : "transparent", color: !isLogin ? COLORS.primary : COLORS.textMuted, fontWeight: 600, cursor: "pointer", boxShadow: !isLogin ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s" }}>Sign Up</button>
                 </div>
 
                 {error && (
-                    <div style={{ background: "#fef2f2", color: "#b91c1c", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 20, border: "1px solid #fee2e2" }}>
+                    <div style={{ background: "#fef2f2", color: "#b91c1c", padding: "12px 16px", borderRadius: 10, fontSize: 13, marginBottom: 20, border: "1px solid #fee2e2" }}>
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleEmailLogin} style={{ display: "grid", gap: 16 }}>
+                <form onSubmit={handleAuth} style={{ display: "grid", gap: 16 }}>
+                    {!isLogin && (
+                        <div>
+                            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.text, marginBottom: 6 }}>Full Name</label>
+                            <input className="input-field" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} required disabled={loading} style={{ width: "100%" }} />
+                        </div>
+                    )}
                     <div>
                         <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.text, marginBottom: 6 }}>Email Address</label>
-                        <input className="input-field" type="email" placeholder="admin@example.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} style={{ width: "100%" }} />
+                        <input className="input-field" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} style={{ width: "100%" }} />
                     </div>
                     <div>
                         <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.text, marginBottom: 6 }}>Password</label>
                         <input className="input-field" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} style={{ width: "100%" }} />
                     </div>
-                    <button className="btn-primary" type="submit" disabled={loading} style={{ padding: 14, fontSize: 15, width: "100%", marginTop: 8 }}>
-                        {loading ? "Authenticating…" : "Sign In"}
+                    <button className="btn-primary" type="submit" disabled={loading} style={{ padding: 16, fontSize: 16, width: "100%", marginTop: 8 }}>
+                        {loading ? "Processing…" : (isLogin ? "Sign In" : "Create Account")}
                     </button>
                 </form>
 
@@ -1111,9 +1182,124 @@ function AdminLogin({ setShowNotif }) {
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google" />
                     Continue with Google
                 </button>
-                
-                <div style={{ textAlign: "center", marginTop: 24, fontSize: 11, color: COLORS.textMuted, opacity: 0.7 }}>
-                    Secure OAuth 2.0 · Supabase Auth · Restricted Access
+            </div>
+        </div>
+    );
+}
+
+function UserDashboard({ user, donations, navigate, showNotif }) {
+    const userDonations = donations.filter(d => d.email === user.email);
+    const totalDonated = userDonations.reduce((s, d) => s + d.amount, 0);
+    const taxSavings = Math.round(totalDonated * 0.5);
+
+    return (
+        <div className="fade-in" style={{ minHeight: "80vh", padding: "40px 20px" }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 40, flexWrap: "wrap", gap: 20 }}>
+                    <div>
+                        <div style={{ fontSize: 14, color: COLORS.primary, fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Donor Dashboard</div>
+                        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, color: COLORS.primaryDark }}>Hello, {user.user_metadata?.full_name || user.email.split('@')[0]}!</h1>
+                        <p style={{ color: COLORS.textMuted }}>You have supported {userDonations.length} causes since joining SevaBharat.</p>
+                    </div>
+                    <button onClick={async () => { await supabase.auth.signOut(); navigate("home"); showNotif("Logged out successfully."); }}
+                        style={{ padding: "10px 20px", borderRadius: 8, border: `1px solid ${COLORS.danger}`, color: COLORS.danger, background: "white", fontWeight: 600, cursor: "pointer" }}>
+                        Sign Out
+                    </button>
+                </div>
+
+                {/* Stats */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24, marginBottom: 48 }}>
+                    {[
+                        { label: "Total Contributed", value: fmtFull(totalDonated), icon: "💰", color: COLORS.primary },
+                        { label: "Donations Made", value: userDonations.length, icon: "🎉", color: "#3498db" },
+                        { label: "Estimated Tax Benefit", value: fmtFull(taxSavings), icon: "📜", color: "#f39c12", sub: "u/s 80G" },
+                        { label: "Lives Impacted", value: userDonations.length * 12, icon: "🌍", color: "#9b59b6" },
+                    ].map(s => (
+                        <div key={s.label} className="card" style={{ padding: 28, position: "relative", overflow: "hidden" }}>
+                            <div style={{ position: "absolute", right: -10, top: -10, fontSize: 80, opacity: 0.05 }}>{s.icon}</div>
+                            <div style={{ fontSize: 14, color: COLORS.textMuted, marginBottom: 8, fontWeight: 500 }}>{s.label}</div>
+                            <div style={{ fontSize: 32, fontWeight: 700, color: s.color }}>{s.value}</div>
+                            {s.sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 4 }}>{s.sub}</div>}
+                        </div>
+                    ))}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 32, alignItems: "start" }}>
+                    <div>
+                        {/* Recent Donations */}
+                        <div className="card" style={{ padding: 0, overflow: "hidden", marginBottom: 40 }}>
+                            <div style={{ padding: "20px 24px", borderBottom: "1px solid #f0f4f2", fontWeight: 700, fontSize: 18, color: COLORS.primaryDark }}>Your Donation History</div>
+                            {userDonations.length > 0 ? (
+                                <table style={{ margin: 0 }}>
+                                    <thead>
+                                        <tr>
+                                            <th>Cause</th><th>Amount</th><th>Date</th><th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {userDonations.map((d, i) => (
+                                            <tr key={i}>
+                                                <td style={{ fontWeight: 600 }}>{d.cause}</td>
+                                                <td style={{ fontWeight: 700, color: COLORS.primary }}>₹{d.amount.toLocaleString("en-IN")}</td>
+                                                <td style={{ color: COLORS.textMuted }}>{d.date}</td>
+                                                <td><span className="tag" style={{ background: "#e8f5ee", color: COLORS.primary }}>Verified</span></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div style={{ padding: 48, textAlign: "center", color: COLORS.textMuted }}>
+                                    <div style={{ fontSize: 48, marginBottom: 16 }}>🍃</div>
+                                    <p>You haven't made any donations yet.</p>
+                                    <button className="btn-primary" onClick={() => navigate("explore")} style={{ marginTop: 16 }}>Browse Causes</button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Success Stories */}
+                        <div style={{ marginBottom: 40 }}>
+                            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, marginBottom: 20, color: COLORS.primaryDark }}>How Your Work is Going</h2>
+                            <div style={{ display: "grid", gap: 24 }}>
+                                {SUCCESS_STORIES.map(story => (
+                                    <div key={story.id} className="card" style={{ display: "flex", overflow: "hidden", padding: 0 }}>
+                                        <img src={story.image} alt={story.title} style={{ width: 220, height: "auto", objectFit: "cover" }} />
+                                        <div style={{ padding: 24, flex: 1 }}>
+                                            <span className="tag" style={{ background: "#e8f5ee", color: COLORS.primary, marginBottom: 12 }}>{story.category} Story</span>
+                                            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10 }}>{story.title}</h3>
+                                            <p style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 16 }}>{story.text}</p>
+                                            <div style={{ fontSize: 12, fontWeight: 600, color: COLORS.primaryDark }}>By {story.ngo}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside>
+                        {/* Proof of Work */}
+                        <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>NGO Proof of Work</h3>
+                            <div style={{ display: "grid", gap: 16 }}>
+                                {PROOF_OF_WORK.map(item => (
+                                    <div key={item.title} style={{ display: "flex", gap: 14, alignItems: "center", padding: "12px 16px", borderRadius: 12, background: "#f5f9f6", cursor: "pointer", transition: "all 0.2s" }} className="hover-lift">
+                                        <div style={{ fontSize: 24 }}>{item.icon}</div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 14, fontWeight: 600 }}>{item.title}</div>
+                                            <div style={{ fontSize: 11, color: COLORS.textMuted }}>{item.date}</div>
+                                        </div>
+                                        <div style={{ fontSize: 12, color: COLORS.primary }}>View</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Impact Quote */}
+                        <div style={{ background: "linear-gradient(135deg, #1a7a4a, #0d5c35)", borderRadius: 20, padding: 32, color: "white", textAlign: "center" }}>
+                            <div style={{ fontSize: 40, marginBottom: 16 }}>🌱</div>
+                            <div style={{ fontStyle: "italic", fontSize: 15, lineHeight: 1.6, marginBottom: 16 }}>"Giving is not just about making a donation. It's about making a difference."</div>
+                            <div style={{ fontWeight: 600, fontSize: 13, textTransform: "uppercase", letterSpacing: 1 }}>— SevaBharat Community</div>
+                        </div>
+                    </aside>
                 </div>
             </div>
         </div>
