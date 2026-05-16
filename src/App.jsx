@@ -1192,34 +1192,71 @@ function UserDashboard({ user, donations, navigate, showNotif }) {
     const totalDonated = userDonations.reduce((s, d) => s + d.amount, 0);
     const taxSavings = Math.round(totalDonated * 0.5);
 
+    // Gamification Logic
+    const getBadge = (total) => {
+        if (total >= 50000) return { name: "Gold Donor", icon: "🥇", color: "#f1c40f", next: null, min: 50000 };
+        if (total >= 10000) return { name: "Silver Donor", icon: "🥈", color: "#bdc3c7", next: 50000, min: 10000 };
+        if (total > 0) return { name: "Bronze Donor", icon: "🥉", color: "#cd7f32", next: 10000, min: 0 };
+        return { name: "New Donor", icon: "🌱", color: "#2ecc71", next: 1000, min: 0 };
+    };
+    
+    const badge = getBadge(totalDonated);
+    const progressPct = badge.next ? Math.min(100, Math.max(0, ((totalDonated - badge.min) / (badge.next - badge.min)) * 100)) : 100;
+
     return (
-        <div className="fade-in" style={{ minHeight: "80vh", padding: "40px 20px" }}>
-            <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 40, flexWrap: "wrap", gap: 20 }}>
+        <div className="fade-in" style={{ minHeight: "80vh", paddingBottom: 60 }}>
+            {/* Dynamic Hero Section */}
+            <div style={{ background: "linear-gradient(135deg, #0d5c35 0%, #1a7a4a 100%)", padding: "60px 20px 80px", color: "white", marginBottom: -40 }}>
+                <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 20 }}>
                     <div>
-                        <div style={{ fontSize: 14, color: COLORS.primary, fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Donor Dashboard</div>
-                        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, color: COLORS.primaryDark }}>Hello, {user.user_metadata?.full_name || user.email.split('@')[0]}!</h1>
-                        <p style={{ color: COLORS.textMuted }}>You have supported {userDonations.length} causes since joining SevaBharat.</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1.5, background: "rgba(255,255,255,0.2)", padding: "4px 10px", borderRadius: 20 }}>
+                                Donor Dashboard
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,0,0,0.2)", padding: "4px 10px", borderRadius: 20, fontSize: 13, fontWeight: 600 }}>
+                                <span>{badge.icon}</span> <span style={{ color: badge.color }}>{badge.name}</span>
+                            </div>
+                        </div>
+                        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, marginBottom: 8 }}>Hello, {user.user_metadata?.full_name || user.email.split('@')[0]}!</h1>
+                        <p style={{ opacity: 0.85, fontSize: 16 }}>You have supported {userDonations.length} causes since joining SevaBharat.</p>
+                        
+                        {badge.next && (
+                            <div style={{ marginTop: 24, maxWidth: 400 }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6, opacity: 0.9 }}>
+                                    <span>Progress to next tier</span>
+                                    <span>₹{(badge.next - totalDonated).toLocaleString("en-IN")} away</span>
+                                </div>
+                                <div style={{ height: 6, background: "rgba(255,255,255,0.2)", borderRadius: 10, overflow: "hidden" }}>
+                                    <div style={{ width: `${progressPct}%`, height: "100%", background: badge.color, borderRadius: 10, transition: "width 1s ease" }} />
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <button onClick={async () => { await supabase.auth.signOut(); navigate("home"); showNotif("Logged out successfully."); }}
-                        style={{ padding: "10px 20px", borderRadius: 8, border: `1px solid ${COLORS.danger}`, color: COLORS.danger, background: "white", fontWeight: 600, cursor: "pointer" }}>
+                        style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.3)", color: "white", background: "transparent", fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }} className="hover-lift">
                         Sign Out
                     </button>
                 </div>
+            </div>
 
+            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
                 {/* Stats */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24, marginBottom: 48 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24, marginBottom: 48, position: "relative", zIndex: 10 }}>
                     {[
-                        { label: "Total Contributed", value: fmtFull(totalDonated), icon: "💰", color: COLORS.primary },
-                        { label: "Donations Made", value: userDonations.length, icon: "🎉", color: "#3498db" },
-                        { label: "Estimated Tax Benefit", value: fmtFull(taxSavings), icon: "📜", color: "#f39c12", sub: "u/s 80G" },
-                        { label: "Lives Impacted", value: userDonations.length * 12, icon: "🌍", color: "#9b59b6" },
+                        { label: "Total Contributed", value: fmtFull(totalDonated), svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>, color: COLORS.primary },
+                        { label: "Donations Made", value: userDonations.length, svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>, color: "#e74c3c" },
+                        { label: "Estimated Tax Benefit", value: fmtFull(taxSavings), svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>, color: "#f39c12", sub: "u/s 80G" },
+                        { label: "Lives Impacted", value: userDonations.length * 12, svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, color: "#9b59b6" },
                     ].map(s => (
-                        <div key={s.label} className="card" style={{ padding: 28, position: "relative", overflow: "hidden" }}>
-                            <div style={{ position: "absolute", right: -10, top: -10, fontSize: 80, opacity: 0.05 }}>{s.icon}</div>
-                            <div style={{ fontSize: 14, color: COLORS.textMuted, marginBottom: 8, fontWeight: 500 }}>{s.label}</div>
-                            <div style={{ fontSize: 32, fontWeight: 700, color: s.color }}>{s.value}</div>
-                            {s.sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 4 }}>{s.sub}</div>}
+                        <div key={s.label} className="card hover-lift" style={{ padding: 28, background: "white", boxShadow: "0 10px 30px rgba(0,0,0,0.08)", border: "none" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                                <div style={{ color: s.color, background: `${s.color}15`, padding: 12, borderRadius: 12 }}>
+                                    {s.svg}
+                                </div>
+                                {s.sub && <div style={{ fontSize: 11, fontWeight: 600, color: s.color, background: `${s.color}15`, padding: "4px 8px", borderRadius: 20 }}>{s.sub}</div>}
+                            </div>
+                            <div style={{ fontSize: 32, fontWeight: 700, color: COLORS.text, marginBottom: 4 }}>{s.value}</div>
+                            <div style={{ fontSize: 14, color: COLORS.textMuted, fontWeight: 500 }}>{s.label}</div>
                         </div>
                     ))}
                 </div>
@@ -1227,46 +1264,75 @@ function UserDashboard({ user, donations, navigate, showNotif }) {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 32, alignItems: "start" }}>
                     <div>
                         {/* Recent Donations */}
-                        <div className="card" style={{ padding: 0, overflow: "hidden", marginBottom: 40 }}>
-                            <div style={{ padding: "20px 24px", borderBottom: "1px solid #f0f4f2", fontWeight: 700, fontSize: 18, color: COLORS.primaryDark }}>Your Donation History</div>
+                        <div className="card" style={{ padding: 0, overflow: "hidden", marginBottom: 40, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+                            <div style={{ padding: "24px 24px", borderBottom: "1px solid #f0f4f2", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div style={{ fontWeight: 700, fontSize: 18, color: COLORS.primaryDark }}>Donation History</div>
+                            </div>
                             {userDonations.length > 0 ? (
                                 <table style={{ margin: 0 }}>
                                     <thead>
-                                        <tr>
-                                            <th>Cause</th><th>Amount</th><th>Date</th><th>Status</th>
+                                        <tr style={{ background: "#f8fdfa" }}>
+                                            <th style={{ padding: "16px 24px" }}>Cause & Date</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th style={{ textAlign: "right", paddingRight: 24 }}>Receipt</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {userDonations.map((d, i) => (
-                                            <tr key={i}>
-                                                <td style={{ fontWeight: 600 }}>{d.cause}</td>
+                                            <tr key={i} style={{ borderBottom: "1px solid #f0f4f2" }}>
+                                                <td style={{ padding: "16px 24px" }}>
+                                                    <div style={{ fontWeight: 600, color: COLORS.text, marginBottom: 4 }}>{d.cause}</div>
+                                                    <div style={{ fontSize: 12, color: COLORS.textMuted }}>{d.date}</div>
+                                                </td>
                                                 <td style={{ fontWeight: 700, color: COLORS.primary }}>₹{d.amount.toLocaleString("en-IN")}</td>
-                                                <td style={{ color: COLORS.textMuted }}>{d.date}</td>
-                                                <td><span className="tag" style={{ background: "#e8f5ee", color: COLORS.primary }}>Verified</span></td>
+                                                <td>
+                                                    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#e8f5ee", color: COLORS.primary, padding: "4px 8px", borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                        Verified
+                                                    </div>
+                                                </td>
+                                                <td style={{ textAlign: "right", paddingRight: 24 }}>
+                                                    <button onClick={() => showNotif(`80G Receipt for ₹${d.amount.toLocaleString("en-IN")} downloaded.`, "info")} 
+                                                        style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, color: COLORS.primary, padding: "6px 12px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }} className="hover-lift">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                        80G
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             ) : (
-                                <div style={{ padding: 48, textAlign: "center", color: COLORS.textMuted }}>
+                                <div style={{ padding: 60, textAlign: "center", color: COLORS.textMuted }}>
                                     <div style={{ fontSize: 48, marginBottom: 16 }}>🍃</div>
-                                    <p>You haven't made any donations yet.</p>
-                                    <button className="btn-primary" onClick={() => navigate("explore")} style={{ marginTop: 16 }}>Browse Causes</button>
+                                    <h3 style={{ fontSize: 18, color: COLORS.text, marginBottom: 8 }}>No donations yet</h3>
+                                    <p style={{ marginBottom: 20 }}>Your giving journey starts here. Explore causes to make an impact.</p>
+                                    <button className="btn-primary" onClick={() => navigate("explore")}>Browse Causes</button>
                                 </div>
                             )}
                         </div>
 
                         {/* Success Stories */}
                         <div style={{ marginBottom: 40 }}>
-                            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, marginBottom: 20, color: COLORS.primaryDark }}>How Your Work is Going</h2>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
+                                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: COLORS.primaryDark, margin: 0 }}>How Your Work is Going</h2>
+                            </div>
                             <div style={{ display: "grid", gap: 24 }}>
                                 {SUCCESS_STORIES.map(story => (
-                                    <div key={story.id} className="card" style={{ display: "flex", overflow: "hidden", padding: 0 }}>
-                                        <img src={story.image} alt={story.title} style={{ width: 220, height: "auto", objectFit: "cover" }} />
-                                        <div style={{ padding: 24, flex: 1 }}>
-                                            <span className="tag" style={{ background: "#e8f5ee", color: COLORS.primary, marginBottom: 12 }}>{story.category} Story</span>
-                                            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10 }}>{story.title}</h3>
-                                            <p style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 16 }}>{story.text}</p>
+                                    <div key={story.id} className="card hover-lift" style={{ display: "flex", overflow: "hidden", padding: 0, border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                                        <div style={{ width: 240, overflow: "hidden" }}>
+                                            <img src={story.image} alt={story.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }} className="zoom-on-hover" />
+                                        </div>
+                                        <div style={{ padding: 24, flex: 1, display: "flex", flexDirection: "column" }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                                                <span className="tag" style={{ background: "#e8f5ee", color: COLORS.primary, fontWeight: 600 }}>{story.category} Story</span>
+                                                <button onClick={() => showNotif("Shared to your network!", "info")} style={{ background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} title="Share Impact">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                                                </button>
+                                            </div>
+                                            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, color: COLORS.text }}>{story.title}</h3>
+                                            <p style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 16, flex: 1 }}>{story.text}</p>
                                             <div style={{ fontSize: 12, fontWeight: 600, color: COLORS.primaryDark }}>By {story.ngo}</div>
                                         </div>
                                     </div>
@@ -1277,31 +1343,43 @@ function UserDashboard({ user, donations, navigate, showNotif }) {
 
                     <aside>
                         {/* Proof of Work */}
-                        <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>NGO Proof of Work</h3>
-                            <div style={{ display: "grid", gap: 16 }}>
+                        <div className="card" style={{ padding: 24, marginBottom: 24, border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20, color: COLORS.primaryDark }}>NGO Proof of Work</h3>
+                            <div style={{ display: "grid", gap: 12 }}>
                                 {PROOF_OF_WORK.map(item => (
-                                    <div key={item.title} style={{ display: "flex", gap: 14, alignItems: "center", padding: "12px 16px", borderRadius: 12, background: "#f5f9f6", cursor: "pointer", transition: "all 0.2s" }} className="hover-lift">
-                                        <div style={{ fontSize: 24 }}>{item.icon}</div>
+                                    <div key={item.title} style={{ display: "flex", gap: 14, alignItems: "center", padding: "14px 16px", borderRadius: 12, border: "1px solid #f0f4f2", cursor: "pointer", transition: "all 0.2s", background: "white" }} className="hover-lift">
+                                        <div style={{ fontSize: 24, background: "#f5f9f6", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8 }}>{item.icon}</div>
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: 14, fontWeight: 600 }}>{item.title}</div>
+                                            <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.text, marginBottom: 2 }}>{item.title}</div>
                                             <div style={{ fontSize: 11, color: COLORS.textMuted }}>{item.date}</div>
                                         </div>
-                                        <div style={{ fontSize: 12, color: COLORS.primary }}>View</div>
+                                        <div style={{ color: COLORS.primary }}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
                         {/* Impact Quote */}
-                        <div style={{ background: "linear-gradient(135deg, #1a7a4a, #0d5c35)", borderRadius: 20, padding: 32, color: "white", textAlign: "center" }}>
-                            <div style={{ fontSize: 40, marginBottom: 16 }}>🌱</div>
-                            <div style={{ fontStyle: "italic", fontSize: 15, lineHeight: 1.6, marginBottom: 16 }}>"Giving is not just about making a donation. It's about making a difference."</div>
-                            <div style={{ fontWeight: 600, fontSize: 13, textTransform: "uppercase", letterSpacing: 1 }}>— SevaBharat Community</div>
+                        <div style={{ background: "linear-gradient(135deg, #1a7a4a, #0d5c35)", borderRadius: 20, padding: 32, color: "white", textAlign: "center", position: "relative", overflow: "hidden" }}>
+                            <div style={{ position: "absolute", top: -20, left: -20, opacity: 0.1 }}>
+                                <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+                            </div>
+                            <div style={{ fontStyle: "italic", fontSize: 16, lineHeight: 1.6, marginBottom: 20, position: "relative", zIndex: 1 }}>
+                                "Giving is not just about making a donation. It's about making a difference."
+                            </div>
+                            <div style={{ fontWeight: 600, fontSize: 12, textTransform: "uppercase", letterSpacing: 1, opacity: 0.9 }}>
+                                — SevaBharat Community
+                            </div>
                         </div>
                     </aside>
                 </div>
             </div>
+            {/* Adding the style for image hover zoom here */}
+            <style>{`
+                .zoom-on-hover:hover { transform: scale(1.05); }
+            `}</style>
         </div>
     );
 }
