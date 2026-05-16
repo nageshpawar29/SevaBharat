@@ -1546,93 +1546,166 @@ function UserDashboard({ user, donations, navigate, showNotif }) {
 function AdminDashboard({ adminEmail, donations, setDonations, navigate, showNotif }) {
     const [activeTab, setActiveTab] = useState("overview");
     const [campaigns, setCampaigns] = useState(CAUSES);
-    const [newCampaign, setNewCampaign] = useState({ title: "", category: "Education", goal: "", description: "" });
+    const [newCampaign, setNewCampaign] = useState({ title: "", category: "Education", goal: "", description: "", ngo: "", location: "", urgent: false, image: "" });
     const [showAddCampaign, setShowAddCampaign] = useState(false);
+    const [editingCampaignId, setEditingCampaignId] = useState(null);
 
     const totalAmount = donations.reduce((s, d) => s + d.amount, 0);
     const uniqueDonors = new Set(donations.map(d => d.email)).size;
 
-    const tabs = ["overview", "donors", "campaigns", "analytics"];
+    const tabs = [
+        { id: "overview", label: "Overview", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> },
+        { id: "donors", label: "Donors", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> },
+        { id: "campaigns", label: "NGO Campaigns", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> },
+        { id: "analytics", label: "Analytics", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> }
+    ];
+
+    const handleSaveCampaign = () => {
+        if (!newCampaign.title || !newCampaign.goal || !newCampaign.ngo || !newCampaign.location) {
+            showNotif("Please fill in all required fields (Title, NGO, Location, Goal).", "error");
+            return;
+        }
+        
+        if (editingCampaignId) {
+            setCampaigns(prev => prev.map(c => c.id === editingCampaignId ? { ...c, ...newCampaign, goal: parseInt(newCampaign.goal) } : c));
+            showNotif("Campaign updated successfully!");
+        } else {
+            const nc = { 
+                ...newCampaign, 
+                id: Date.now(), 
+                raised: 0, 
+                goal: parseInt(newCampaign.goal), 
+                donors: 0, 
+                image: newCampaign.image || "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&q=80" 
+            };
+            setCampaigns(prev => [nc, ...prev]);
+            showNotif("Campaign added successfully!");
+        }
+        
+        setNewCampaign({ title: "", category: "Education", goal: "", description: "", ngo: "", location: "", urgent: false, image: "" });
+        setShowAddCampaign(false);
+        setEditingCampaignId(null);
+    };
+
+    const handleEditClick = (c) => {
+        setNewCampaign({ title: c.title, category: c.category, goal: c.goal.toString(), description: c.description, ngo: c.ngo, location: c.location, urgent: c.urgent || false, image: c.image });
+        setEditingCampaignId(c.id);
+        setShowAddCampaign(true);
+    };
 
     return (
-        <div className="fade-in" style={{ minHeight: "80vh" }}>
-            <div style={{ background: "linear-gradient(135deg, #0d1f15, #1a3d26)", padding: "24px 20px" }}>
-                <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                        <div style={{ fontSize: 26, color: "white" }}>Admin Dashboard</div>
-                        <div style={{ fontSize: 13, color: "#7a9e87" }}>Logged in as: {adminEmail}</div>
+        <div className="fade-in" style={{ minHeight: "80vh", background: "#f8faf9" }}>
+            <div style={{ background: "linear-gradient(135deg, #0f2b1d, #1a4a32)", padding: "30px 20px" }}>
+                <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                        <div style={{ width: 50, height: 50, background: "rgba(255,255,255,0.1)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: "#4ade80" }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: 24, fontWeight: 700, color: "white", letterSpacing: "-0.5px" }}>Control Center</div>
+                            <div style={{ fontSize: 14, color: "#86efac", opacity: 0.9 }}>Admin: {adminEmail}</div>
+                        </div>
                     </div>
                     <div style={{ display: "flex", gap: 12 }}>
-                        <button onClick={() => navigate("home")}
-                            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "9px 18px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
-                            ← Back to Site
+                        <button className="hover-lift" onClick={() => navigate("home")}
+                            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "10px 20px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 600 }}>
+                            View Site
                         </button>
-                        <button onClick={async () => { await supabase.auth.signOut(); navigate("home"); showNotif("Logged out successfully."); }}
-                            style={{ background: "#e74c3c", color: "white", border: "none", padding: "9px 18px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 600 }}>
+                        <button className="hover-lift" onClick={async () => { await supabase.auth.signOut(); navigate("home"); showNotif("Logged out successfully."); }}
+                            style={{ background: "#e74c3c", color: "white", border: "none", padding: "10px 20px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 600 }}>
                             Sign Out
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Summary Cards */}
-            <div style={{ background: "#f5f9f6", padding: "24px 20px 0" }}>
-                <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 24 }}>
-                        {[
-                            { label: "Total Donations", value: fmtFull(totalAmount), icon: "💰", color: "#1a7a4a" },
-                            { label: "Total Donors", value: donations.length, icon: "👥", color: "#2980b9" },
-                            { label: "Unique Donors", value: uniqueDonors, icon: "🌟", color: "#8e44ad" },
-                            { label: "Active Campaigns", value: campaigns.length, icon: "📋", color: "#e67e22" },
-                        ].map(c => (
-                            <div key={c.label} className="card" style={{ padding: "20px 22px", display: "flex", alignItems: "center", gap: 14 }}>
-                                <div style={{ fontSize: 28 }}>{c.icon}</div>
-                                <div>
-                                    <div style={{ fontSize: 22, fontWeight: 700, color: c.color }}>{c.value}</div>
-                                    <div style={{ fontSize: 12, color: COLORS.textMuted, fontWeight: 500 }}>{c.label}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Tabs */}
-                    <div style={{ display: "flex", gap: 4, borderBottom: "1px solid #e0e0e0" }}>
-                        {tabs.map(t => (
-                            <button key={t} onClick={() => setActiveTab(t)}
-                                style={{ padding: "12px 20px", background: "none", border: "none", borderBottom: `3px solid ${activeTab === t ? COLORS.primary : "transparent"}`, color: activeTab === t ? COLORS.primary : COLORS.textMuted, fontWeight: activeTab === t ? 700 : 400, cursor: "pointer", fontFamily: "inherit", fontSize: 14, textTransform: "capitalize" }}>
-                                {t}
-                            </button>
-                        ))}
-                    </div>
+            {/* Navigation Tabs */}
+            <div style={{ borderBottom: "1px solid #e2e8f0", background: "white", position: "sticky", top: 0, zIndex: 10 }}>
+                <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 8, padding: "0 20px", overflowX: "auto" }}>
+                    {tabs.map(t => (
+                        <button key={t.id} onClick={() => { setActiveTab(t.id); setShowAddCampaign(false); setEditingCampaignId(null); }}
+                            style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 20px", background: "none", border: "none", borderBottom: `3px solid ${activeTab === t.id ? COLORS.primary : "transparent"}`, color: activeTab === t.id ? COLORS.primaryDark : COLORS.textMuted, fontWeight: activeTab === t.id ? 700 : 600, cursor: "pointer", fontFamily: "inherit", fontSize: 15, transition: "all 0.2s", whiteSpace: "nowrap" }}>
+                            {t.icon}
+                            {t.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 20px" }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 20px" }}>
+                {/* Summary Cards */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20, marginBottom: 32 }}>
+                    {[
+                        { label: "Total Raised", value: fmtFull(totalAmount), icon: "₹", color: "#10b981", bg: "#d1fae5" },
+                        { label: "Total Donors", value: donations.length.toLocaleString(), icon: "👥", color: "#3b82f6", bg: "#dbeafe" },
+                        { label: "Unique Supporters", value: uniqueDonors.toLocaleString(), icon: "🌟", color: "#8b5cf6", bg: "#ede9fe" },
+                        { label: "Active Campaigns", value: campaigns.length, icon: "📋", color: "#f59e0b", bg: "#fef3c7" },
+                    ].map(c => (
+                        <div key={c.label} className="card hover-lift" style={{ padding: 24, display: "flex", alignItems: "center", gap: 16, border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.03)" }}>
+                            <div style={{ width: 54, height: 54, borderRadius: 16, background: c.bg, color: c.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 700 }}>
+                                {c.icon}
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 13, color: COLORS.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{c.label}</div>
+                                <div style={{ fontSize: 24, fontWeight: 800, color: COLORS.primaryDark }}>{c.value}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
                 {/* Overview */}
                 {activeTab === "overview" && (
-                    <div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
-                            <div className="card" style={{ padding: 24 }}>
-                                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16, color: COLORS.primaryDark }}>Recent Donations</div>
-                                {donations.slice(0, 5).map((d, i) => (
-                                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f0f4f2" }}>
-                                        <div>
-                                            <div style={{ fontWeight: 600, fontSize: 14 }}>{d.name}</div>
-                                            <div style={{ fontSize: 12, color: COLORS.textMuted }}>{d.cause}</div>
-                                        </div>
-                                        <div style={{ fontWeight: 700, color: COLORS.primary }}>₹{d.amount.toLocaleString("en-IN")}</div>
-                                    </div>
-                                ))}
+                    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, alignItems: "start" }}>
+                        <div className="card" style={{ padding: 24, border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.03)" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                                <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.primaryDark }}>Recent Transactions</div>
+                                <button className="btn-outline" onClick={() => setActiveTab("donors")} style={{ padding: "6px 12px", fontSize: 13 }}>View All</button>
                             </div>
-                            <div className="card" style={{ padding: 24 }}>
-                                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16, color: COLORS.primaryDark }}>Category Distribution</div>
-                                {CATEGORY_DATA.map(c => (
-                                    <div key={c.cat} style={{ marginBottom: 14 }}>
-                                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 5 }}>
-                                            <span style={{ fontWeight: 500 }}>{c.cat}</span>
-                                            <span style={{ color: COLORS.textMuted }}>{c.pct}%</span>
+                            {donations.slice(0, 6).map((d, i) => (
+                                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: i !== 5 ? "1px solid #f1f5f9" : "none" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: COLORS.textMuted }}>
+                                            {d.name.charAt(0).toUpperCase()}
                                         </div>
-                                        <div className="progress-bar">
+                                        <div>
+                                            <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.text }}>{d.name}</div>
+                                            <div style={{ fontSize: 12, color: COLORS.textMuted, display: "flex", gap: 6, alignItems: "center" }}>
+                                                <span>{d.date}</span> • <span>{d.cause}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: "right" }}>
+                                        <div style={{ fontWeight: 700, color: COLORS.primary }}>+₹{d.amount.toLocaleString("en-IN")}</div>
+                                        <div style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>Success</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                            <div className="card" style={{ padding: 24, border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", background: "linear-gradient(135deg, #1a7a4a, #0d5c35)", color: "white" }}>
+                                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Quick Actions</div>
+                                <div style={{ display: "grid", gap: 10 }}>
+                                    <button className="hover-lift" onClick={() => showNotif("Generating Tax Report...")} style={{ background: "rgba(255,255,255,0.15)", border: "none", padding: 14, borderRadius: 10, color: "white", fontWeight: 600, textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                        Download Tax Report
+                                    </button>
+                                    <button className="hover-lift" onClick={() => { setActiveTab("campaigns"); setShowAddCampaign(true); }} style={{ background: "white", border: "none", padding: 14, borderRadius: 10, color: COLORS.primaryDark, fontWeight: 700, textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                        Create Campaign
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="card" style={{ padding: 24, border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.03)" }}>
+                                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16, color: COLORS.primaryDark }}>Fund Distribution</div>
+                                {CATEGORY_DATA.map(c => (
+                                    <div key={c.cat} style={{ marginBottom: 16 }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6, fontWeight: 600 }}>
+                                            <span style={{ color: COLORS.text }}>{c.cat}</span>
+                                            <span style={{ color: c.color }}>{c.pct}%</span>
+                                        </div>
+                                        <div className="progress-bar" style={{ height: 8, background: "#f1f5f9" }}>
                                             <div style={{ height: "100%", width: `${c.pct}%`, background: c.color, borderRadius: 99 }} />
                                         </div>
                                     </div>
@@ -1644,97 +1717,163 @@ function AdminDashboard({ adminEmail, donations, setDonations, navigate, showNot
 
                 {/* Donors */}
                 {activeTab === "donors" && (
-                    <div className="card" style={{ overflow: "auto" }}>
-                        <div style={{ padding: "20px 24px", borderBottom: "1px solid #f0f4f2", fontWeight: 700, fontSize: 15 }}>
-                            All Donors ({donations.length})
+                    <div className="card" style={{ overflow: "hidden", border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.03)" }}>
+                        <div style={{ padding: "20px 24px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "white" }}>
+                            <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.primaryDark }}>All Donor Records ({donations.length})</div>
+                            <button className="btn-outline" onClick={() => showNotif("Exporting CSV...")} style={{ padding: "8px 16px", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                Export CSV
+                            </button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th><th>Email</th><th>Phone</th><th>Amount</th><th>Cause</th><th>Date</th><th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {donations.map((d, i) => (
-                                    <tr key={i}>
-                                        <td style={{ fontWeight: 600 }}>{d.name}</td>
-                                        <td style={{ color: COLORS.textMuted }}>{d.email}</td>
-                                        <td>{d.phone}</td>
-                                        <td style={{ fontWeight: 700, color: COLORS.primary }}>₹{d.amount.toLocaleString("en-IN")}</td>
-                                        <td><span className="tag" style={{ background: "#e8f5ee", color: COLORS.primary, fontSize: 12 }}>{d.cause}</span></td>
-                                        <td style={{ color: COLORS.textMuted }}>{d.date}</td>
-                                        <td>
-                                            <button onClick={() => { setDonations(prev => prev.filter((_, idx) => idx !== i)); showNotif("Donor record removed."); }}
-                                                style={{ background: "#fef0ef", color: "#c0392b", border: "none", padding: "5px 12px", borderRadius: 6, cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 600 }}>
-                                                Remove
-                                            </button>
-                                        </td>
+                        <div style={{ overflowX: "auto" }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse", background: "white" }}>
+                                <thead style={{ background: "#f8faf9", borderBottom: "2px solid #e2e8f0" }}>
+                                    <tr>
+                                        <th style={{ padding: "16px 24px", textAlign: "left", fontSize: 13, color: COLORS.textMuted, fontWeight: 600, textTransform: "uppercase" }}>Donor Info</th>
+                                        <th style={{ padding: "16px 24px", textAlign: "left", fontSize: 13, color: COLORS.textMuted, fontWeight: 600, textTransform: "uppercase" }}>Contact</th>
+                                        <th style={{ padding: "16px 24px", textAlign: "left", fontSize: 13, color: COLORS.textMuted, fontWeight: 600, textTransform: "uppercase" }}>Contribution</th>
+                                        <th style={{ padding: "16px 24px", textAlign: "left", fontSize: 13, color: COLORS.textMuted, fontWeight: 600, textTransform: "uppercase" }}>Status</th>
+                                        <th style={{ padding: "16px 24px", textAlign: "right", fontSize: 13, color: COLORS.textMuted, fontWeight: 600, textTransform: "uppercase" }}>Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {donations.map((d, i) => (
+                                        <tr key={i} style={{ borderBottom: "1px solid #f1f5f9", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "#f8faf9"} onMouseOut={e => e.currentTarget.style.background = "white"}>
+                                            <td style={{ padding: "16px 24px" }}>
+                                                <div style={{ fontWeight: 600, color: COLORS.text }}>{d.name}</div>
+                                                <div style={{ fontSize: 12, color: COLORS.textMuted }}>{d.date}</div>
+                                            </td>
+                                            <td style={{ padding: "16px 24px" }}>
+                                                <div style={{ color: COLORS.text, fontSize: 14 }}>{d.email}</div>
+                                                <div style={{ fontSize: 12, color: COLORS.textMuted }}>{d.phone}</div>
+                                            </td>
+                                            <td style={{ padding: "16px 24px" }}>
+                                                <div style={{ fontWeight: 700, color: COLORS.primaryDark }}>₹{d.amount.toLocaleString("en-IN")}</div>
+                                                <div style={{ fontSize: 12, color: COLORS.textMuted }}>{d.cause}</div>
+                                            </td>
+                                            <td style={{ padding: "16px 24px" }}>
+                                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", background: "#d1fae5", color: "#065f46", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
+                                                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#059669" }} /> Completed
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: "16px 24px", textAlign: "right" }}>
+                                                <button onClick={() => { setDonations(prev => prev.filter((_, idx) => idx !== i)); showNotif("Donor record removed."); }}
+                                                    style={{ background: "#fef2f2", color: "#ef4444", border: "none", padding: "6px 12px", borderRadius: 6, cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, transition: "background 0.2s" }}>
+                                                    Remove
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 
                 {/* Campaigns */}
                 {activeTab === "campaigns" && (
                     <div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                            <div style={{ fontWeight: 700, fontSize: 16 }}>NGO Campaigns ({campaigns.length})</div>
-                            <button className="btn-primary" onClick={() => setShowAddCampaign(!showAddCampaign)} style={{ padding: "10px 20px", fontSize: 14 }}>
-                                + Add Campaign
-                            </button>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                            <div style={{ fontWeight: 700, fontSize: 20, color: COLORS.primaryDark }}>NGO Campaigns ({campaigns.length})</div>
+                            {!showAddCampaign && (
+                                <button className="btn-primary hover-lift" onClick={() => { setNewCampaign({ title: "", category: "Education", goal: "", description: "", ngo: "", location: "", urgent: false, image: "" }); setEditingCampaignId(null); setShowAddCampaign(true); }} style={{ padding: "12px 24px", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    Add New Campaign
+                                </button>
+                            )}
                         </div>
 
                         {showAddCampaign && (
-                            <div className="card" style={{ padding: 24, marginBottom: 24, border: `2px solid ${COLORS.primary}` }}>
-                                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>Add New Campaign</div>
-                                <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
-                                    <input className="input-field" placeholder="Campaign Title" value={newCampaign.title} onChange={e => setNewCampaign(f => ({ ...f, title: e.target.value }))} style={{ gridColumn: "1 / -1" }} />
-                                    <select className="input-field" value={newCampaign.category} onChange={e => setNewCampaign(f => ({ ...f, category: e.target.value }))}>
-                                        {Object.keys(catColors).map(c => <option key={c}>{c}</option>)}
-                                    </select>
-                                    <input className="input-field" type="number" placeholder="Goal Amount (₹)" value={newCampaign.goal} onChange={e => setNewCampaign(f => ({ ...f, goal: e.target.value }))} />
-                                    <textarea className="input-field" placeholder="Campaign description..." value={newCampaign.description} onChange={e => setNewCampaign(f => ({ ...f, description: e.target.value }))} style={{ gridColumn: "1 / -1", height: 80, resize: "vertical" }} />
+                            <div className="card fade-in" style={{ padding: 32, marginBottom: 32, border: "none", boxShadow: "0 10px 40px rgba(0,0,0,0.08)", position: "relative" }}>
+                                <div style={{ position: "absolute", top: 0, left: 0, width: 4, height: "100%", background: COLORS.primary }} />
+                                <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 24, color: COLORS.primaryDark }}>{editingCampaignId ? "Edit Campaign" : "Add New Campaign"}</div>
+                                
+                                <div style={{ display: "grid", gap: 20, gridTemplateColumns: "1fr 1fr" }}>
+                                    <div style={{ gridColumn: "1 / -1" }}>
+                                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.textMuted, marginBottom: 6 }}>Campaign Title *</label>
+                                        <input className="input-field" placeholder="E.g., Mid-Day Meals for Children" value={newCampaign.title} onChange={e => setNewCampaign(f => ({ ...f, title: e.target.value }))} style={{ background: "#f8faf9" }} />
+                                    </div>
+                                    
+                                    <div>
+                                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.textMuted, marginBottom: 6 }}>Partner NGO *</label>
+                                        <input className="input-field" placeholder="E.g., Shiksha Foundation" value={newCampaign.ngo} onChange={e => setNewCampaign(f => ({ ...f, ngo: e.target.value }))} style={{ background: "#f8faf9" }} />
+                                    </div>
+                                    
+                                    <div>
+                                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.textMuted, marginBottom: 6 }}>Location *</label>
+                                        <input className="input-field" placeholder="E.g., Bihar, India" value={newCampaign.location} onChange={e => setNewCampaign(f => ({ ...f, location: e.target.value }))} style={{ background: "#f8faf9" }} />
+                                    </div>
+
+                                    <div>
+                                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.textMuted, marginBottom: 6 }}>Category</label>
+                                        <select className="input-field" value={newCampaign.category} onChange={e => setNewCampaign(f => ({ ...f, category: e.target.value }))} style={{ background: "#f8faf9" }}>
+                                            {Object.keys(catColors).map(c => <option key={c}>{c}</option>)}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.textMuted, marginBottom: 6 }}>Goal Amount (₹) *</label>
+                                        <input className="input-field" type="number" placeholder="500000" value={newCampaign.goal} onChange={e => setNewCampaign(f => ({ ...f, goal: e.target.value }))} style={{ background: "#f8faf9" }} />
+                                    </div>
+
+                                    <div style={{ gridColumn: "1 / -1" }}>
+                                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.textMuted, marginBottom: 6 }}>Image URL</label>
+                                        <input className="input-field" placeholder="https://..." value={newCampaign.image} onChange={e => setNewCampaign(f => ({ ...f, image: e.target.value }))} style={{ background: "#f8faf9" }} />
+                                    </div>
+
+                                    <div style={{ gridColumn: "1 / -1" }}>
+                                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.textMuted, marginBottom: 6 }}>Description</label>
+                                        <textarea className="input-field" placeholder="Describe the impact of this campaign..." value={newCampaign.description} onChange={e => setNewCampaign(f => ({ ...f, description: e.target.value }))} style={{ height: 100, resize: "vertical", background: "#f8faf9" }} />
+                                    </div>
+                                    
+                                    <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: 10, padding: "16px", background: "#fff5f5", borderRadius: 12, border: "1px solid #fed7d7" }}>
+                                        <input type="checkbox" id="urgentCheck" checked={newCampaign.urgent} onChange={e => setNewCampaign(f => ({ ...f, urgent: e.target.checked }))} style={{ width: 18, height: 18, accentColor: "#ef4444", cursor: "pointer" }} />
+                                        <label htmlFor="urgentCheck" style={{ fontWeight: 600, color: "#991b1b", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                                            🔥 Mark as Urgent Campaign
+                                        </label>
+                                    </div>
                                 </div>
-                                <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                                    <button className="btn-primary" onClick={() => {
-                                        if (!newCampaign.title || !newCampaign.goal) { showNotif("Please fill title and goal.", "error"); return; }
-                                        const nc = { ...newCampaign, id: Date.now(), raised: 0, goal: parseInt(newCampaign.goal), donors: 0, urgent: false, ngo: "New NGO", location: "India", image: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&q=80", description: newCampaign.description || "New campaign" };
-                                        setCampaigns(prev => [nc, ...prev]);
-                                        setNewCampaign({ title: "", category: "Education", goal: "", description: "" });
-                                        setShowAddCampaign(false);
-                                        showNotif("Campaign added successfully!");
-                                    }} style={{ fontSize: 14, padding: "10px 20px" }}>Save Campaign</button>
-                                    <button className="btn-outline" onClick={() => setShowAddCampaign(false)} style={{ fontSize: 14, padding: "10px 20px" }}>Cancel</button>
+                                <div style={{ display: "flex", gap: 12, marginTop: 24, paddingTop: 24, borderTop: "1px solid #e2e8f0" }}>
+                                    <button className="btn-primary hover-lift" onClick={handleSaveCampaign} style={{ fontSize: 15, padding: "12px 24px" }}>
+                                        {editingCampaignId ? "Save Changes" : "Create Campaign"}
+                                    </button>
+                                    <button className="btn-outline hover-lift" onClick={() => { setShowAddCampaign(false); setEditingCampaignId(null); }} style={{ fontSize: 15, padding: "12px 24px" }}>Cancel</button>
                                 </div>
                             </div>
                         )}
 
-                        <div style={{ display: "grid", gap: 16 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))", gap: 24 }}>
                             {campaigns.map(c => (
-                                <div key={c.id} className="card" style={{ padding: 20, display: "flex", gap: 16, alignItems: "center" }}>
-                                    <img src={c.image} alt={c.title} style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 8 }} loading="lazy" />
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, marginBottom: 2 }}>{c.title}</div>
-                                        <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>{c.ngo} · {c.category}</div>
+                                <div key={c.id} className="card" style={{ padding: 20, display: "flex", gap: 20, alignItems: "center", border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.06)"} onMouseOut={e => e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.03)"}>
+                                    <div style={{ position: "relative" }}>
+                                        <img src={c.image} alt={c.title} style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 12 }} loading="lazy" />
+                                        {c.urgent && <div style={{ position: "absolute", top: -8, right: -8, background: "#ef4444", color: "white", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 10, border: "2px solid white" }}>URGENT</div>}
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontSize: 12, color: COLORS.primary, fontWeight: 700, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{c.category}</div>
+                                        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, color: COLORS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.title}</div>
+                                        <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                            {c.ngo} · {c.location}
+                                        </div>
+                                        
                                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                            <div className="progress-bar" style={{ flex: 1 }}>
-                                                <div className="progress-fill" style={{ width: `${pct(c.raised, c.goal)}%` }} />
+                                            <div className="progress-bar" style={{ flex: 1, height: 6, background: "#f1f5f9" }}>
+                                                <div className="progress-fill" style={{ width: `${pct(c.raised, c.goal)}%`, background: catColors[c.category] || COLORS.primary }} />
                                             </div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.primary, whiteSpace: "nowrap" }}>
-                                                {fmt(c.raised)} / {fmt(c.goal)}
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.textMuted }}>
+                                                {pct(c.raised, c.goal)}%
                                             </div>
                                         </div>
                                     </div>
-                                    <div style={{ display: "flex", gap: 8 }}>
-                                        <button onClick={() => { showNotif(`Editing "${c.title}" — (edit UI coming soon)`); }}
-                                            style={{ background: "#e8f5ee", color: COLORS.primary, border: "none", padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600 }}>
-                                            Edit
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                        <button onClick={() => handleEditClick(c)}
+                                            style={{ background: "#f8faf9", color: COLORS.text, border: "1px solid #e2e8f0", padding: "8px", borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} onMouseOver={e => { e.currentTarget.style.background = "#e8f5ee"; e.currentTarget.style.color = COLORS.primary; e.currentTarget.style.borderColor = COLORS.primary; }} onMouseOut={e => { e.currentTarget.style.background = "#f8faf9"; e.currentTarget.style.color = COLORS.text; e.currentTarget.style.borderColor = "#e2e8f0"; }}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                         </button>
                                         <button onClick={() => { setCampaigns(prev => prev.filter(x => x.id !== c.id)); showNotif("Campaign deleted."); }}
-                                            style={{ background: "#fef0ef", color: "#c0392b", border: "none", padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600 }}>
-                                            Delete
+                                            style={{ background: "#f8faf9", color: COLORS.text, border: "1px solid #e2e8f0", padding: "8px", borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} onMouseOver={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.borderColor = "#ef4444"; }} onMouseOut={e => { e.currentTarget.style.background = "#f8faf9"; e.currentTarget.style.color = COLORS.text; e.currentTarget.style.borderColor = "#e2e8f0"; }}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         </button>
                                     </div>
                                 </div>
