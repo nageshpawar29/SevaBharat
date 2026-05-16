@@ -667,30 +667,30 @@ function CauseCard({ cause, navigate }) {
     const p = pct(cause.raised, cause.goal);
     const catColor = catColors[cause.category] || COLORS.primary;
     return (
-        <div className="card hover-lift" style={{ overflow: "hidden", cursor: "pointer" }} onClick={() => navigate("donate", cause)}>
-            <div style={{ position: "relative" }}>
-                <img src={cause.image} alt={cause.title} style={{ width: "100%", height: 190, objectFit: "cover", display: "block" }} loading="lazy" />
+        <div className="card hover-lift cause-card" style={{ overflow: "hidden", cursor: "pointer", border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }} onClick={() => navigate("donate", cause)}>
+            <div style={{ position: "relative", overflow: "hidden" }}>
+                <img src={cause.image} alt={cause.title} className="cause-img" style={{ width: "100%", height: 210, objectFit: "cover", display: "block", transition: "transform 0.5s ease" }} loading="lazy" />
                 <div style={{ position: "absolute", top: 12, left: 12, display: "flex", gap: 6 }}>
-                    <span className="tag" style={{ background: `${catColor}22`, color: catColor }}>{cause.category}</span>
-                    {cause.urgent && <span className="tag urgent-badge">🔥 Urgent</span>}
+                    <span className="tag" style={{ background: `${catColor}33`, color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.3)", backdropFilter: "blur(4px)", fontWeight: 600 }}>{cause.category}</span>
+                    {cause.urgent && <span className="tag urgent-badge" style={{ boxShadow: "0 2px 10px rgba(231, 76, 60, 0.4)" }}>🔥 Urgent</span>}
                 </div>
             </div>
-            <div style={{ padding: "18px 20px" }}>
-                <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4, fontWeight: 500 }}>{cause.ngo} · {cause.location}</div>
-                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, lineHeight: 1.4 }}>{cause.title}</h3>
-                <p style={{ fontSize: 13, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 16, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{cause.description}</p>
-                <div className="progress-bar" style={{ marginBottom: 10 }}>
-                    <div className="progress-fill" style={{ width: `${p}%` }} />
+            <div style={{ padding: "22px 24px", display: "flex", flexDirection: "column", flex: 1 }}>
+                <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{cause.ngo} · {cause.location}</div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, lineHeight: 1.4, color: COLORS.primaryDark }}>{cause.title}</h3>
+                <p style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 20, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1 }}>{cause.description}</p>
+                <div className="progress-bar" style={{ marginBottom: 12, height: 8 }}>
+                    <div className="progress-fill" style={{ width: `${p}%`, background: catColor }} />
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 }}>
                     <div>
-                        <span style={{ fontWeight: 700, color: COLORS.primary }}>{fmt(cause.raised)}</span>
+                        <span style={{ fontWeight: 700, color: COLORS.primaryDark }}>{fmt(cause.raised)}</span>
                         <span style={{ color: COLORS.textMuted }}> of {fmt(cause.goal)}</span>
                     </div>
-                    <div style={{ color: COLORS.textMuted }}>{cause.donors.toLocaleString()} donors</div>
+                    <div style={{ color: COLORS.textMuted, fontWeight: 500 }}>{cause.donors.toLocaleString()} donors</div>
                 </div>
-                <div style={{ marginTop: 4, fontSize: 12, fontWeight: 600, color: catColor }}>{p}% Funded</div>
-                <button className="btn-primary" style={{ width: "100%", marginTop: 14, padding: "11px" }} onClick={e => { e.stopPropagation(); navigate("donate", cause); }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: catColor }}>{p}% Funded</div>
+                <button className="btn-primary" style={{ width: "100%", marginTop: 20, padding: "14px", borderRadius: 10, fontWeight: 600, background: catColor }} onClick={e => { e.stopPropagation(); navigate("donate", cause); }}>
                     Donate to This Cause
                 </button>
             </div>
@@ -699,30 +699,95 @@ function CauseCard({ cause, navigate }) {
 }
 
 function ExplorePage({ navigate, filterCat, setFilterCat }) {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sortBy, setSortBy] = useState("urgent");
+
     const cats = ["All", ...Object.keys(catColors)];
-    const filtered = filterCat === "All" ? CAUSES : CAUSES.filter(c => c.category === filterCat);
+    
+    let filtered = filterCat === "All" ? [...CAUSES] : CAUSES.filter(c => c.category === filterCat);
+    
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(c => c.title.toLowerCase().includes(q) || c.ngo.toLowerCase().includes(q) || c.location.toLowerCase().includes(q));
+    }
+
+    filtered.sort((a, b) => {
+        const pctA = a.raised / a.goal;
+        const pctB = b.raised / b.goal;
+        if (sortBy === "urgent") {
+            return (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0);
+        } else if (sortBy === "closest") {
+            return pctB - pctA;
+        } else if (sortBy === "needs-help") {
+            return pctA - pctB;
+        }
+        return 0;
+    });
 
     return (
-        <div className="fade-in" style={{ maxWidth: 1200, margin: "40px auto", padding: "0 20px" }}>
-            <div style={{ marginBottom: 32 }}>
-                <div className="section-title">Explore Causes</div>
-                <div className="section-sub">Browse all verified NGO campaigns and find your cause</div>
+        <div className="fade-in" style={{ maxWidth: 1200, margin: "0 auto 60px", padding: "0 20px" }}>
+            <style>{`
+                .cause-card:hover .cause-img { transform: scale(1.08); }
+                .explore-hero { background: linear-gradient(135deg, #0d5c35 0%, #1a7a4a 100%); color: white; padding: 60px 40px; border-radius: 24px; margin-top: 30px; margin-bottom: 40px; box-shadow: 0 20px 40px rgba(26,122,74,0.15); text-align: center; position: relative; overflow: hidden; }
+                .explore-hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); pointer-events: none; }
+            `}</style>
+            
+            <div className="explore-hero">
+                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 46, marginBottom: 16, position: "relative", zIndex: 1 }}>Explore Causes</h1>
+                <p style={{ fontSize: 18, opacity: 0.9, maxWidth: 600, margin: "0 auto", position: "relative", zIndex: 1, lineHeight: 1.6 }}>Browse verified NGO campaigns across India. Find a cause that speaks to your heart and make an impact today.</p>
             </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 32 }}>
-                {cats.map(c => (
-                    <button key={c} className={`chip ${filterCat === c ? "chip-active" : "chip-inactive"}`} onClick={() => setFilterCat(c)}>
-                        {c}
-                    </button>
-                ))}
+
+            {/* Filters & Controls */}
+            <div style={{ background: "white", padding: 24, borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.04)", marginBottom: 32 }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 24 }}>
+                    {cats.map(c => (
+                        <button key={c} className={`chip ${filterCat === c ? "chip-active" : "chip-inactive"}`} onClick={() => setFilterCat(c)}
+                            style={{ padding: "10px 20px", borderRadius: 30, fontWeight: 600, fontSize: 14, transition: "all 0.2s" }}>
+                            {c}
+                        </button>
+                    ))}
+                </div>
+                
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ position: "relative", flex: "1 1 300px" }}>
+                        <svg style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: COLORS.textMuted }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="Search causes, NGOs, or locations..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                            style={{ width: "100%", padding: "14px 16px 14px 44px", borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 15, background: "#f8faf9" }} />
+                    </div>
+                    
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <span style={{ fontSize: 14, color: COLORS.textMuted, fontWeight: 600 }}>Sort by:</span>
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ padding: "12px 16px", borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 14, background: "#f8faf9", fontWeight: 600, color: COLORS.text, cursor: "pointer", outline: "none" }}>
+                            <option value="urgent">🔥 Most Urgent</option>
+                            <option value="closest">🎯 Closest to Goal</option>
+                            <option value="needs-help">❤️ Needs Most Help</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div style={{ fontSize: 14, color: COLORS.textMuted, marginBottom: 20 }}>Showing {filtered.length} cause{filtered.length !== 1 ? "s" : ""}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
-                {filtered.map(c => <CauseCard key={c.id} cause={c} navigate={navigate} />)}
+
+            <div style={{ fontSize: 15, color: COLORS.textMuted, marginBottom: 24, fontWeight: 500 }}>
+                Showing <strong style={{ color: COLORS.text }}>{filtered.length}</strong> cause{filtered.length !== 1 ? "s" : ""}
+                {searchQuery && <span> matching "{searchQuery}"</span>}
             </div>
-            <div style={{ marginTop: 48, padding: 32, background: "linear-gradient(135deg, #e8f5ee, #d1eedd)", borderRadius: 20, textAlign: "center" }}>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: COLORS.primaryDark, marginBottom: 10 }}>Can't decide? Donate to All Causes</div>
-                <div style={{ color: COLORS.textMuted, marginBottom: 24 }}>Your donation will be distributed across all 6 sectors based on urgent need.</div>
-                <button className="btn-primary" onClick={() => navigate("donate", null)} style={{ padding: "14px 36px", fontSize: 16 }}>
+
+            {filtered.length > 0 ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 30 }}>
+                    {filtered.map(c => <CauseCard key={c.id} cause={c} navigate={navigate} />)}
+                </div>
+            ) : (
+                <div style={{ textAlign: "center", padding: "80px 20px", background: "white", borderRadius: 16 }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
+                    <div style={{ fontSize: 18, fontWeight: 600, color: COLORS.primaryDark, marginBottom: 8 }}>No causes found</div>
+                    <div style={{ color: COLORS.textMuted }}>Try adjusting your filters or search term to find what you're looking for.</div>
+                    <button className="btn-outline" style={{ marginTop: 20 }} onClick={() => { setSearchQuery(""); setFilterCat("All"); }}>Clear All Filters</button>
+                </div>
+            )}
+
+            <div style={{ marginTop: 60, padding: "40px 32px", background: "linear-gradient(135deg, #e8f5ee, #d1eedd)", borderRadius: 24, textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, color: COLORS.primaryDark, marginBottom: 12 }}>Can't decide? Donate to All Causes</div>
+                <div style={{ color: COLORS.textMuted, marginBottom: 24, fontSize: 16, maxWidth: 500, margin: "0 auto 30px" }}>Your donation will be distributed across all 6 sectors based on urgent need, ensuring maximum impact.</div>
+                <button className="btn-primary hover-lift" onClick={() => navigate("donate", null)} style={{ padding: "16px 40px", fontSize: 18, borderRadius: 12 }}>
                     Donate to All Causes
                 </button>
             </div>
