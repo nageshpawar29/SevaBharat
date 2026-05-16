@@ -735,14 +735,18 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-    const presets = [500, 1000, 2000, 5000, 10000];
+    const [isMonthly, setIsMonthly] = useState(false);
+    const [coverFees, setCoverFees] = useState(false);
 
+    const presets = [500, 1000, 2000, 5000, 10000];
     const selectedCause = causeData || { title: "All Causes", description: "Your donation will be split across all 6 cause categories.", image: null };
-    const finalAmount = form.amount || form.custom;
+    
+    const baseAmount = parseInt(form.amount || form.custom || "0");
+    const finalAmount = coverFees ? Math.ceil(baseAmount * 1.02) : baseAmount;
 
     const handleSubmit = async () => {
-        if (!form.name || !form.email || !form.phone || !finalAmount) {
-            showNotif("Please fill in all required fields.", "error");
+        if (!form.name || !form.email || !form.phone || baseAmount <= 0) {
+            showNotif("Please fill in all required fields and select an amount.", "error");
             return;
         }
         if (!/^\d{10}$/.test(form.phone)) {
@@ -760,21 +764,15 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
             const orderRes = await fetch(`${API_URL}/create-order`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: parseInt(finalAmount) }),
+                body: JSON.stringify({ amount: finalAmount }),
             });
             const order = await orderRes.json();
-            console.log("Order received:", order);
-
+            
             if (!orderRes.ok) throw new Error(order.error || "Failed to create order");
 
-            if (!window.Razorpay) {
-                throw new Error("Razorpay SDK not loaded. Please check your internet connection or script tag in index.html");
-            }
+            if (!window.Razorpay) throw new Error("Razorpay SDK not loaded.");
 
             const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-            if (!razorpayKey || razorpayKey === "YOUR_RAZORPAY_KEY_ID") {
-                console.warn("Razorpay Key ID is not configured correctly in .env");
-            }
 
             // 2. Open Razorpay Checkout
             const options = {
@@ -782,7 +780,7 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
                 amount: order.amount,
                 currency: order.currency,
                 name: "SevaBharat",
-                description: `Donation for ${form.cause}`,
+                description: `${isMonthly ? 'Monthly ' : ''}Donation for ${form.cause}`,
                 order_id: order.id,
                 handler: async function (response) {
                     // 3. Save donation on success
@@ -790,12 +788,13 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
                         name: form.name,
                         email: form.email,
                         phone: form.phone,
-                        amount: parseInt(finalAmount),
+                        amount: finalAmount,
                         cause: form.cause,
                         date: new Date().toISOString().split("T")[0],
                         razorpay_payment_id: response.razorpay_payment_id,
                         razorpay_order_id: response.razorpay_order_id,
                         razorpay_signature: response.razorpay_signature,
+                        type: isMonthly ? "monthly" : "one-time"
                     };
 
                     const { error } = await supabase.from('donations').insert([newDonor]);
@@ -825,11 +824,7 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
                     contact: form.phone,
                 },
                 theme: { color: "#1a7a4a" },
-                modal: {
-                    ondismiss: function () {
-                        setLoading(false);
-                    }
-                }
+                modal: { ondismiss: function () { setLoading(false); } }
             };
 
             const rzp = new window.Razorpay(options);
@@ -848,18 +843,20 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
     if (submitted) {
         return (
             <div className="fade-in" style={{ maxWidth: 600, margin: "60px auto", padding: "0 20px", textAlign: "center" }}>
-                <div className="card" style={{ padding: 48 }}>
-                    <div style={{ fontSize: 64, marginBottom: 20 }}>💚</div>
-                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, color: COLORS.primary, marginBottom: 12 }}>Thank You, {form.name}!</div>
-                    <div style={{ color: COLORS.textMuted, fontSize: 16, lineHeight: 1.7, marginBottom: 24 }}>
-                        Your donation of <strong style={{ color: COLORS.primary }}>{fmtFull(parseInt(finalAmount))}</strong> to <strong>{form.cause}</strong> has been received. An 80G receipt will be sent to {form.email}.
+                <div className="card" style={{ padding: "60px 40px", border: "none", boxShadow: "0 20px 40px rgba(0,0,0,0.08)", background: "white" }}>
+                    <div style={{ width: 80, height: 80, background: "#e8f5ee", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: COLORS.primary }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
-                    <div style={{ background: "#f5f9f6", borderRadius: 12, padding: "16px 24px", marginBottom: 32, fontSize: 14, color: COLORS.textMuted }}>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, color: COLORS.primaryDark, marginBottom: 12 }}>Thank You, {form.name}!</div>
+                    <div style={{ color: COLORS.textMuted, fontSize: 16, lineHeight: 1.7, marginBottom: 24 }}>
+                        Your {isMonthly ? "monthly " : ""}donation of <strong style={{ color: COLORS.primary }}>{fmtFull(finalAmount)}</strong> to <strong>{form.cause}</strong> has been received. An 80G receipt will be sent to {form.email}.
+                    </div>
+                    <div style={{ background: "#f8fdfa", border: "1px dashed #c0dfcd", borderRadius: 12, padding: "16px 24px", marginBottom: 32, fontSize: 14, color: COLORS.textMuted, display: "inline-block" }}>
                         🔖 Transaction Ref: SB{Date.now().toString().slice(-8)}
                     </div>
                     <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-                        <button className="btn-primary" onClick={() => { setSubmitted(false); navigate("home"); }}>Back to Home</button>
-                        <button className="btn-outline" onClick={() => { setSubmitted(false); setForm({ name: "", email: "", phone: "", amount: "", custom: "", cause: "All Causes" }); }}>Donate Again</button>
+                        <button className="btn-primary hover-lift" onClick={() => { setSubmitted(false); navigate("dashboard"); }}>View Dashboard</button>
+                        <button className="btn-outline hover-lift" onClick={() => { setSubmitted(false); navigate("home"); }}>Back to Home</button>
                     </div>
                 </div>
             </div>
@@ -867,22 +864,35 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
     }
 
     return (
-        <div className="fade-in" style={{ maxWidth: 1000, margin: "40px auto", padding: "0 20px" }}>
-            <div className="section-title" style={{ marginBottom: 8 }}>Make a Donation</div>
-            <div className="section-sub" style={{ marginBottom: 32 }}>100% of your donation reaches the cause. Zero platform fee.</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 28, alignItems: "start" }}>
+        <div className="fade-in" style={{ maxWidth: 1100, margin: "40px auto", padding: "0 20px" }}>
+            <div style={{ textAlign: "center", marginBottom: 40 }}>
+                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: COLORS.primaryDark, marginBottom: 12 }}>Make a Donation</h1>
+                <p style={{ fontSize: 16, color: COLORS.textMuted, maxWidth: 600, margin: "0 auto" }}>100% of your donation reaches the cause. Zero platform fee.</p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 32, alignItems: "start" }}>
                 <div>
+                    {/* Donation Type Toggle */}
+                    <div style={{ display: "flex", background: "white", borderRadius: 12, padding: 6, marginBottom: 24, boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                        <button onClick={() => setIsMonthly(false)} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "none", background: !isMonthly ? COLORS.primary : "transparent", color: !isMonthly ? "white" : COLORS.textMuted, fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontSize: 15 }}>Give Once</button>
+                        <button onClick={() => setIsMonthly(true)} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "none", background: isMonthly ? COLORS.primary : "transparent", color: isMonthly ? "white" : COLORS.textMuted, fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                            Monthly <span style={{ background: isMonthly ? "rgba(255,255,255,0.2)" : "#f0f4f2", color: isMonthly ? "white" : COLORS.primary, padding: "2px 8px", borderRadius: 10, fontSize: 11 }}>Impact</span>
+                        </button>
+                    </div>
+
                     {/* Cause selection */}
-                    <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Donating To</div>
-                        <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+                    <div className="card" style={{ padding: 32, marginBottom: 24, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
+                        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>1. Select Cause</div>
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                             <button onClick={() => setForm(f => ({ ...f, cause: "All Causes" }))}
-                                style={{ padding: "10px 16px", borderRadius: 10, border: `2px solid ${form.cause === "All Causes" ? COLORS.primary : "#e0e0e0"}`, background: form.cause === "All Causes" ? "#e8f5ee" : "white", color: form.cause === "All Causes" ? COLORS.primary : "#888", fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
+                                className="hover-lift"
+                                style={{ padding: "12px 20px", borderRadius: 12, border: `2px solid ${form.cause === "All Causes" ? COLORS.primary : "#f0f4f2"}`, background: form.cause === "All Causes" ? "#f8fdfa" : "white", color: form.cause === "All Causes" ? COLORS.primary : COLORS.text, fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s" }}>
                                 🌐 All Causes
                             </button>
                             {CAUSES.map(c => (
                                 <button key={c.id} onClick={() => setForm(f => ({ ...f, cause: c.title }))}
-                                    style={{ padding: "10px 16px", borderRadius: 10, border: `2px solid ${form.cause === c.title ? COLORS.primary : "#e0e0e0"}`, background: form.cause === c.title ? "#e8f5ee" : "white", color: form.cause === c.title ? COLORS.primary : "#888", fontWeight: 500, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                                    className="hover-lift"
+                                    style={{ padding: "12px 20px", borderRadius: 12, border: `2px solid ${form.cause === c.title ? COLORS.primary : "#f0f4f2"}`, background: form.cause === c.title ? "#f8fdfa" : "white", color: form.cause === c.title ? COLORS.primary : COLORS.text, fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s" }}>
                                     {c.title}
                                 </button>
                             ))}
@@ -890,81 +900,118 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
                     </div>
 
                     {/* Amount */}
-                    <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Choose Amount</div>
-                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+                    <div className="card" style={{ padding: 32, marginBottom: 24, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
+                        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>2. Choose Amount</div>
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
                             {presets.map(p => (
                                 <button key={p} onClick={() => setForm(f => ({ ...f, amount: p.toString(), custom: "" }))}
-                                    style={{ padding: "12px 20px", borderRadius: 10, border: `2px solid ${form.amount === p.toString() ? COLORS.primary : "#e0e0e0"}`, background: form.amount === p.toString() ? "#e8f5ee" : "white", color: form.amount === p.toString() ? COLORS.primary : COLORS.text, fontWeight: 600, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}>
+                                    className="hover-lift"
+                                    style={{ flex: "1 1 100px", padding: "16px 20px", borderRadius: 12, border: `2px solid ${form.amount === p.toString() ? COLORS.primary : "#f0f4f2"}`, background: form.amount === p.toString() ? "#f8fdfa" : "white", color: form.amount === p.toString() ? COLORS.primary : COLORS.text, fontWeight: 700, fontSize: 16, cursor: "pointer", transition: "all 0.2s" }}>
                                     ₹{p.toLocaleString("en-IN")}
                                 </button>
                             ))}
                         </div>
                         <input className="input-field" type="number" placeholder="Enter custom amount (₹)"
+                            style={{ padding: "16px", fontSize: 16, borderRadius: 12, background: "#f8faf9", border: "1px solid #e2e8f0" }}
                             value={form.custom}
                             onChange={e => setForm(f => ({ ...f, custom: e.target.value, amount: "" }))} />
-                        {finalAmount && (
-                            <div style={{ marginTop: 12, fontSize: 14, color: COLORS.primary, fontWeight: 600 }}>
-                                Selected: {fmtFull(parseInt(finalAmount))}
-                                <span style={{ color: COLORS.textMuted, fontWeight: 400 }}> — approx. tax benefit: {fmtFull(Math.round(parseInt(finalAmount) * 0.5))} (50% of donation u/s 80G)</span>
+                        
+                        <div style={{ marginTop: 24, padding: "16px", background: "#f8fdfa", borderRadius: 12, border: "1px solid #c0dfcd", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                            <input type="checkbox" id="coverFees" checked={coverFees} onChange={e => setCoverFees(e.target.checked)} style={{ width: 18, height: 18, marginTop: 2, accentColor: COLORS.primary, cursor: "pointer" }} />
+                            <div>
+                                <label htmlFor="coverFees" style={{ fontWeight: 600, color: COLORS.text, cursor: "pointer", display: "block", marginBottom: 4 }}>Cover processing fees (2%)</label>
+                                <div style={{ fontSize: 13, color: COLORS.textMuted }}>Optional: Add ₹{Math.ceil(baseAmount * 0.02)} so 100% of your donation reaches the NGO.</div>
+                            </div>
+                        </div>
+
+                        {baseAmount > 0 && (
+                            <div style={{ marginTop: 20, fontSize: 15, color: COLORS.primary, fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px dashed #e2e8f0", paddingTop: 20 }}>
+                                <span>Total Contribution</span>
+                                <span style={{ fontSize: 24, color: COLORS.primaryDark }}>{fmtFull(finalAmount)}</span>
                             </div>
                         )}
                     </div>
 
                     {/* Personal Details */}
-                    <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Your Details</div>
-                        <div style={{ display: "grid", gap: 14 }}>
-                            <input className="input-field" placeholder="Full Name *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-                            <input className="input-field" type="email" placeholder="Email Address *" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-                            <input className="input-field" type="tel" placeholder="Mobile Number (10 digits) *" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))} />
+                    <div className="card" style={{ padding: 32, marginBottom: 32, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
+                        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>3. Your Details</div>
+                        <div style={{ display: "grid", gap: 16 }}>
+                            <input className="input-field" style={{ borderRadius: 10, padding: 14 }} placeholder="Full Name *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                            <input className="input-field" style={{ borderRadius: 10, padding: 14 }} type="email" placeholder="Email Address *" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+                            <input className="input-field" style={{ borderRadius: 10, padding: 14 }} type="tel" placeholder="Mobile Number (10 digits) *" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))} />
                         </div>
                     </div>
 
-                    <button className="btn-primary" onClick={handleSubmit} disabled={loading}
-                        style={{ width: "100%", padding: 16, fontSize: 17, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                    <button className="btn-primary hover-lift" onClick={handleSubmit} disabled={loading}
+                        style={{ width: "100%", padding: 18, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, borderRadius: 14, boxShadow: "0 10px 20px rgba(26, 122, 74, 0.2)" }}>
                         {loading ? (
                             <>
-                                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "white", animation: "spin 0.8s linear infinite" }} />
-                                Processing…
+                                <div style={{ width: 22, height: 22, borderRadius: "50%", border: "3px solid rgba(255,255,255,0.4)", borderTopColor: "white", animation: "spin 0.8s linear infinite" }} />
+                                Processing Securely…
                             </>
                         ) : (
-                            `💚 Donate ${finalAmount ? fmtFull(parseInt(finalAmount)) : "Now"}`
+                            <>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                Donate {finalAmount > 0 ? fmtFull(finalAmount) : "Now"} {isMonthly ? "Monthly" : ""}
+                            </>
                         )}
                     </button>
-                    <div style={{ textAlign: "center", marginTop: 12, fontSize: 12, color: COLORS.textMuted }}>🔒 SSL Secured · RBI Compliant · 80G Tax Receipt</div>
+                    <div style={{ textAlign: "center", marginTop: 16, fontSize: 13, color: COLORS.textMuted, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        SSL Secured · RBI Compliant · 80G Tax Receipt
+                    </div>
                 </div>
 
                 {/* Sidebar */}
                 <div>
+                    {/* Trust Badge / Testimonial */}
+                    <div className="card" style={{ padding: 24, marginBottom: 24, background: "linear-gradient(135deg, #1a7a4a, #0d5c35)", color: "white", border: "none" }}>
+                        <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                            <div style={{ color: "#f1c40f", display: "flex" }}>
+                                {[1,2,3,4,5].map(i => <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>)}
+                            </div>
+                        </div>
+                        <div style={{ fontStyle: "italic", fontSize: 15, lineHeight: 1.6, marginBottom: 16, opacity: 0.95 }}>
+                            "SevaBharat's transparency is unmatched. I can track exactly where every rupee of my donation goes."
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>AP</div>
+                            <div style={{ fontSize: 13 }}>
+                                <div style={{ fontWeight: 600 }}>Amit P.</div>
+                                <div style={{ opacity: 0.8 }}>Donor since 2021</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {causeData && (
-                        <div className="card" style={{ overflow: "hidden", marginBottom: 20 }}>
-                            <img src={causeData.image} alt={causeData.title} style={{ width: "100%", height: 160, objectFit: "cover" }} loading="lazy" />
-                            <div style={{ padding: 20 }}>
-                                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{causeData.title}</div>
-                                <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 10 }}>{causeData.ngo} · {causeData.location}</div>
-                                <div className="progress-bar" style={{ marginBottom: 8 }}>
+                        <div className="card" style={{ overflow: "hidden", marginBottom: 24, border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                            <img src={causeData.image} alt={causeData.title} style={{ width: "100%", height: 180, objectFit: "cover" }} loading="lazy" />
+                            <div style={{ padding: 24 }}>
+                                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>{causeData.title}</div>
+                                <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>{causeData.ngo} · {causeData.location}</div>
+                                <div className="progress-bar" style={{ marginBottom: 10, height: 8 }}>
                                     <div className="progress-fill" style={{ width: `${pct(causeData.raised, causeData.goal)}%` }} />
                                 </div>
-                                <div style={{ fontSize: 13, display: "flex", justifyContent: "space-between" }}>
-                                    <span style={{ fontWeight: 700, color: COLORS.primary }}>{fmt(causeData.raised)} raised</span>
-                                    <span style={{ color: COLORS.textMuted }}>{pct(causeData.raised, causeData.goal)}%</span>
+                                <div style={{ fontSize: 14, display: "flex", justifyContent: "space-between" }}>
+                                    <span style={{ fontWeight: 700, color: COLORS.primary }}>{fmt(causeData.raised)}</span>
+                                    <span style={{ color: COLORS.textMuted }}>Goal: {fmt(causeData.goal)}</span>
                                 </div>
                             </div>
                         </div>
                     )}
-                    <div className="card" style={{ padding: 20 }}>
-                        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>Why Trust Us</div>
+
+                    <div className="card" style={{ padding: 24, border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 20, color: COLORS.primaryDark }}>Why Trust Us</div>
                         {[
-                            { icon: "✅", text: "All NGOs verified by GuideStar India" },
-                            { icon: "📊", text: "Real-time fund tracking dashboard" },
-                            { icon: "🏛️", text: "FCRA registered & 80G certified" },
-                            { icon: "📸", text: "Photo & video proof of impact" },
-                            { icon: "🔒", text: "Bank-grade data encryption" },
-                        ].map(t => (
-                            <div key={t.text} style={{ display: "flex", gap: 10, marginBottom: 12, fontSize: 13 }}>
-                                <span>{t.icon}</span>
-                                <span style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>{t.text}</span>
+                            { svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>, text: "All NGOs verified by GuideStar India" },
+                            { svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>, text: "Real-time fund tracking dashboard" },
+                            { svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l8 4v6c0 5.5-3.58 10.74-8 12-4.42-1.26-8-6.5-8-12V6l8-4z"></path></svg>, text: "FCRA registered & 80G certified" },
+                            { svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>, text: "Photo & video proof of impact" },
+                            { svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>, text: "Bank-grade data encryption" },
+                        ].map((t, i) => (
+                            <div key={i} style={{ display: "flex", gap: 14, marginBottom: 16, alignItems: "flex-start" }}>
+                                <div style={{ color: COLORS.primary, marginTop: 2 }}>{t.svg}</div>
+                                <span style={{ color: COLORS.text, fontSize: 14, lineHeight: 1.5, fontWeight: 500 }}>{t.text}</span>
                             </div>
                         ))}
                     </div>
