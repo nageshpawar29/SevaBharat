@@ -872,94 +872,140 @@ function DonatePage({ navigate, causeData, donations, setDonations, showNotif })
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 32, alignItems: "start" }}>
                 <div>
-                    {/* Donation Type Toggle */}
-                    <div style={{ display: "flex", background: "white", borderRadius: 12, padding: 6, marginBottom: 24, boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
-                        <button onClick={() => setIsMonthly(false)} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "none", background: !isMonthly ? COLORS.primary : "transparent", color: !isMonthly ? "white" : COLORS.textMuted, fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontSize: 15 }}>Give Once</button>
-                        <button onClick={() => setIsMonthly(true)} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "none", background: isMonthly ? COLORS.primary : "transparent", color: isMonthly ? "white" : COLORS.textMuted, fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                            Monthly <span style={{ background: isMonthly ? "rgba(255,255,255,0.2)" : "#f0f4f2", color: isMonthly ? "white" : COLORS.primary, padding: "2px 8px", borderRadius: 10, fontSize: 11 }}>Impact</span>
-                        </button>
+                    {/* Step Indicator */}
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 32, position: "relative", maxWidth: 300, margin: "0 auto 32px" }}>
+                        <div style={{ position: "absolute", top: 14, left: 20, right: 20, height: 2, background: "#f0f4f2", zIndex: 0 }} />
+                        {[1, 2, 3].map(num => (
+                            <div key={num} style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                                <div style={{ width: 30, height: 30, borderRadius: "50%", background: step >= num ? COLORS.primary : "white", border: `2px solid ${step >= num ? COLORS.primary : "#d1e0d7"}`, color: step >= num ? "white" : COLORS.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, transition: "all 0.3s" }}>
+                                    {step > num ? "✓" : num}
+                                </div>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: step >= num ? COLORS.primaryDark : COLORS.textMuted }}>
+                                    {num === 1 ? "Cause" : num === 2 ? "Amount" : "Details"}
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
-                    {/* Cause selection */}
-                    <div className="card" style={{ padding: 32, marginBottom: 24, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
-                        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>1. Select Cause</div>
-                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                            <button onClick={() => setForm(f => ({ ...f, cause: "All Causes" }))}
-                                className="hover-lift"
-                                style={{ padding: "12px 20px", borderRadius: 12, border: `2px solid ${form.cause === "All Causes" ? COLORS.primary : "#f0f4f2"}`, background: form.cause === "All Causes" ? "#f8fdfa" : "white", color: form.cause === "All Causes" ? COLORS.primary : COLORS.text, fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s" }}>
-                                🌐 All Causes
+                    {step === 1 && (
+                        <div className="fade-in">
+                            {/* Donation Type Toggle */}
+                            <div style={{ display: "flex", background: "white", borderRadius: 12, padding: 6, marginBottom: 24, boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                                <button onClick={() => setIsMonthly(false)} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "none", background: !isMonthly ? COLORS.primary : "transparent", color: !isMonthly ? "white" : COLORS.textMuted, fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontSize: 15 }}>Give Once</button>
+                                <button onClick={() => setIsMonthly(true)} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "none", background: isMonthly ? COLORS.primary : "transparent", color: isMonthly ? "white" : COLORS.textMuted, fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                                    Monthly <span style={{ background: isMonthly ? "rgba(255,255,255,0.2)" : "#f0f4f2", color: isMonthly ? "white" : COLORS.primary, padding: "2px 8px", borderRadius: 10, fontSize: 11 }}>Impact</span>
+                                </button>
+                            </div>
+
+                            {/* Cause selection */}
+                            <div className="card" style={{ padding: 32, marginBottom: 24, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
+                                <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>Select Cause</div>
+                                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                                    <button onClick={() => setForm(f => ({ ...f, cause: "All Causes" }))}
+                                        className="hover-lift"
+                                        style={{ padding: "12px 20px", borderRadius: 12, border: `2px solid ${form.cause === "All Causes" ? COLORS.primary : "#f0f4f2"}`, background: form.cause === "All Causes" ? "#f8fdfa" : "white", color: form.cause === "All Causes" ? COLORS.primary : COLORS.text, fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s" }}>
+                                        🌐 All Causes
+                                    </button>
+                                    {CAUSES.map(c => (
+                                        <button key={c.id} onClick={() => setForm(f => ({ ...f, cause: c.title }))}
+                                            className="hover-lift"
+                                            style={{ padding: "12px 20px", borderRadius: 12, border: `2px solid ${form.cause === c.title ? COLORS.primary : "#f0f4f2"}`, background: form.cause === c.title ? "#f8fdfa" : "white", color: form.cause === c.title ? COLORS.primary : COLORS.text, fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s" }}>
+                                            {c.title}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <button className="btn-primary hover-lift" onClick={() => setStep(2)}
+                                style={{ width: "100%", padding: 18, fontSize: 16, borderRadius: 12, fontWeight: 600 }}>
+                                Continue to Amount ➔
                             </button>
-                            {CAUSES.map(c => (
-                                <button key={c.id} onClick={() => setForm(f => ({ ...f, cause: c.title }))}
-                                    className="hover-lift"
-                                    style={{ padding: "12px 20px", borderRadius: 12, border: `2px solid ${form.cause === c.title ? COLORS.primary : "#f0f4f2"}`, background: form.cause === c.title ? "#f8fdfa" : "white", color: form.cause === c.title ? COLORS.primary : COLORS.text, fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s" }}>
-                                    {c.title}
-                                </button>
-                            ))}
                         </div>
-                    </div>
+                    )}
 
-                    {/* Amount */}
-                    <div className="card" style={{ padding: 32, marginBottom: 24, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
-                        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>2. Choose Amount</div>
-                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
-                            {presets.map(p => (
-                                <button key={p} onClick={() => setForm(f => ({ ...f, amount: p.toString(), custom: "" }))}
-                                    className="hover-lift"
-                                    style={{ flex: "1 1 100px", padding: "16px 20px", borderRadius: 12, border: `2px solid ${form.amount === p.toString() ? COLORS.primary : "#f0f4f2"}`, background: form.amount === p.toString() ? "#f8fdfa" : "white", color: form.amount === p.toString() ? COLORS.primary : COLORS.text, fontWeight: 700, fontSize: 16, cursor: "pointer", transition: "all 0.2s" }}>
-                                    ₹{p.toLocaleString("en-IN")}
+                    {step === 2 && (
+                        <div className="fade-in">
+                            {/* Amount */}
+                            <div className="card" style={{ padding: 32, marginBottom: 24, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
+                                <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>Choose Amount</div>
+                                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
+                                    {presets.map(p => (
+                                        <button key={p} onClick={() => setForm(f => ({ ...f, amount: p.toString(), custom: "" }))}
+                                            className="hover-lift"
+                                            style={{ flex: "1 1 100px", padding: "16px 20px", borderRadius: 12, border: `2px solid ${form.amount === p.toString() ? COLORS.primary : "#f0f4f2"}`, background: form.amount === p.toString() ? "#f8fdfa" : "white", color: form.amount === p.toString() ? COLORS.primary : COLORS.text, fontWeight: 700, fontSize: 16, cursor: "pointer", transition: "all 0.2s" }}>
+                                            ₹{p.toLocaleString("en-IN")}
+                                        </button>
+                                    ))}
+                                </div>
+                                <input className="input-field" type="number" placeholder="Enter custom amount (₹)"
+                                    style={{ padding: "16px", fontSize: 16, borderRadius: 12, background: "#f8faf9", border: "1px solid #e2e8f0" }}
+                                    value={form.custom}
+                                    onChange={e => setForm(f => ({ ...f, custom: e.target.value, amount: "" }))} />
+                                
+                                <div style={{ marginTop: 24, padding: "16px", background: "#f8fdfa", borderRadius: 12, border: "1px solid #c0dfcd", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                                    <input type="checkbox" id="coverFees" checked={coverFees} onChange={e => setCoverFees(e.target.checked)} style={{ width: 18, height: 18, marginTop: 2, accentColor: COLORS.primary, cursor: "pointer" }} />
+                                    <div>
+                                        <label htmlFor="coverFees" style={{ fontWeight: 600, color: COLORS.text, cursor: "pointer", display: "block", marginBottom: 4 }}>Cover processing fees (2%)</label>
+                                        <div style={{ fontSize: 13, color: COLORS.textMuted }}>Optional: Add ₹{Math.ceil(baseAmount * 0.02)} so 100% of your donation reaches the NGO.</div>
+                                    </div>
+                                </div>
+
+                                {baseAmount > 0 && (
+                                    <div style={{ marginTop: 20, fontSize: 15, color: COLORS.primary, fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px dashed #e2e8f0", paddingTop: 20 }}>
+                                        <span>Total Contribution</span>
+                                        <span style={{ fontSize: 24, color: COLORS.primaryDark }}>{fmtFull(finalAmount)}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div style={{ display: "flex", gap: 12 }}>
+                                <button className="btn-outline hover-lift" onClick={() => setStep(1)} style={{ padding: "16px 24px", borderRadius: 12, fontWeight: 600 }}>Back</button>
+                                <button className="btn-primary hover-lift" onClick={() => {
+                                    if (baseAmount <= 0) showNotif("Please select an amount.", "error");
+                                    else setStep(3);
+                                }} style={{ flex: 1, padding: 18, fontSize: 16, borderRadius: 12, fontWeight: 600 }}>
+                                    Continue to Details ➔
                                 </button>
-                            ))}
-                        </div>
-                        <input className="input-field" type="number" placeholder="Enter custom amount (₹)"
-                            style={{ padding: "16px", fontSize: 16, borderRadius: 12, background: "#f8faf9", border: "1px solid #e2e8f0" }}
-                            value={form.custom}
-                            onChange={e => setForm(f => ({ ...f, custom: e.target.value, amount: "" }))} />
-                        
-                        <div style={{ marginTop: 24, padding: "16px", background: "#f8fdfa", borderRadius: 12, border: "1px solid #c0dfcd", display: "flex", gap: 12, alignItems: "flex-start" }}>
-                            <input type="checkbox" id="coverFees" checked={coverFees} onChange={e => setCoverFees(e.target.checked)} style={{ width: 18, height: 18, marginTop: 2, accentColor: COLORS.primary, cursor: "pointer" }} />
-                            <div>
-                                <label htmlFor="coverFees" style={{ fontWeight: 600, color: COLORS.text, cursor: "pointer", display: "block", marginBottom: 4 }}>Cover processing fees (2%)</label>
-                                <div style={{ fontSize: 13, color: COLORS.textMuted }}>Optional: Add ₹{Math.ceil(baseAmount * 0.02)} so 100% of your donation reaches the NGO.</div>
                             </div>
                         </div>
+                    )}
 
-                        {baseAmount > 0 && (
-                            <div style={{ marginTop: 20, fontSize: 15, color: COLORS.primary, fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px dashed #e2e8f0", paddingTop: 20 }}>
-                                <span>Total Contribution</span>
-                                <span style={{ fontSize: 24, color: COLORS.primaryDark }}>{fmtFull(finalAmount)}</span>
+                    {step === 3 && (
+                        <div className="fade-in">
+                            {/* Personal Details */}
+                            <div className="card" style={{ padding: 32, marginBottom: 24, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
+                                <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>Your Details</div>
+                                <div style={{ display: "grid", gap: 16 }}>
+                                    <input className="input-field" style={{ borderRadius: 10, padding: 14 }} placeholder="Full Name *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                                    <input className="input-field" style={{ borderRadius: 10, padding: 14 }} type="email" placeholder="Email Address *" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+                                    <input className="input-field" style={{ borderRadius: 10, padding: 14 }} type="tel" placeholder="Mobile Number (10 digits) *" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))} />
+                                </div>
                             </div>
-                        )}
-                    </div>
 
-                    {/* Personal Details */}
-                    <div className="card" style={{ padding: 32, marginBottom: 32, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
-                        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20, color: COLORS.primaryDark }}>3. Your Details</div>
-                        <div style={{ display: "grid", gap: 16 }}>
-                            <input className="input-field" style={{ borderRadius: 10, padding: 14 }} placeholder="Full Name *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-                            <input className="input-field" style={{ borderRadius: 10, padding: 14 }} type="email" placeholder="Email Address *" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-                            <input className="input-field" style={{ borderRadius: 10, padding: 14 }} type="tel" placeholder="Mobile Number (10 digits) *" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))} />
+                            <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                                <button className="btn-outline hover-lift" onClick={() => setStep(2)} disabled={loading} style={{ padding: "16px 24px", borderRadius: 12, fontWeight: 600 }}>Back</button>
+                                <button className="btn-primary hover-lift" onClick={handleSubmit} disabled={loading}
+                                    style={{ flex: 1, padding: 18, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, borderRadius: 14, boxShadow: "0 10px 20px rgba(26, 122, 74, 0.2)" }}>
+                                    {loading ? (
+                                        <>
+                                            <div style={{ width: 22, height: 22, borderRadius: "50%", border: "3px solid rgba(255,255,255,0.4)", borderTopColor: "white", animation: "spin 0.8s linear infinite" }} />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                            Donate {fmtFull(finalAmount)}
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                            
+                            <div style={{ textAlign: "center", fontSize: 13, color: COLORS.textMuted, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                SSL Secured · RBI Compliant · 80G Tax Receipt
+                            </div>
                         </div>
-                    </div>
-
-                    <button className="btn-primary hover-lift" onClick={handleSubmit} disabled={loading}
-                        style={{ width: "100%", padding: 18, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, borderRadius: 14, boxShadow: "0 10px 20px rgba(26, 122, 74, 0.2)" }}>
-                        {loading ? (
-                            <>
-                                <div style={{ width: 22, height: 22, borderRadius: "50%", border: "3px solid rgba(255,255,255,0.4)", borderTopColor: "white", animation: "spin 0.8s linear infinite" }} />
-                                Processing Securely…
-                            </>
-                        ) : (
-                            <>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                Donate {finalAmount > 0 ? fmtFull(finalAmount) : "Now"} {isMonthly ? "Monthly" : ""}
-                            </>
-                        )}
-                    </button>
-                    <div style={{ textAlign: "center", marginTop: 16, fontSize: 13, color: COLORS.textMuted, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        SSL Secured · RBI Compliant · 80G Tax Receipt
-                    </div>
+                    )}
                 </div>
 
                 {/* Sidebar */}
