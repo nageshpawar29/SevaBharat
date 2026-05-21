@@ -1,0 +1,401 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Share+Tech+Mono&display=swap');
+
+/* Core Variables & Tokens */
+:root {
+  --primary: #1a7a4a;
+  --primary-light: #2ecc71;
+  --primary-dark: #0d5c35;
+  --accent: #f39c12;
+  --accent-light: #f7c55a;
+  --blue: #2980b9;
+  --blue-light: #3498db;
+  --danger: #e74c3c;
+  --bg: #f5f9f6;
+  --card: #ffffff;
+  --text: #1a2e23;
+  --text-muted: #5a7a65;
+  --border: #d4e8da;
+  --shadow: 0 4px 20px rgba(26, 122, 74, 0.06);
+  --shadow-hover: 0 12px 30px rgba(26, 122, 74, 0.12);
+  --glow: none;
+  --font-sans: 'Outfit', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --scan-opacity: 0;
+}
+
+/* Hologram Cyber Mode Overrides */
+.hologram-mode {
+  --primary: #00ff66;
+  --primary-light: #39ff14;
+  --primary-dark: #003311;
+  --accent: #ffb700;
+  --accent-light: #ffd000;
+  --blue: #00d2ff;
+  --blue-light: #00e5ff;
+  --danger: #ff0055;
+  --bg: #030805;
+  --card: #07120a;
+  --text: #dcfce7;
+  --text-muted: #629676;
+  --border: #143521;
+  --shadow: 0 0 20px rgba(0, 255, 102, 0.08);
+  --shadow-hover: 0 0 30px rgba(0, 255, 102, 0.2);
+  --glow: 0 0 12px rgba(0, 255, 98, 0.7), 0 0 4px rgba(255, 255, 255, 0.5);
+  --scan-opacity: 0.03;
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  transition: background-color 0.4s ease, color 0.4s ease;
+  overflow-x: hidden;
+}
+
+/* Futuristic Scanline Effect Overlay */
+.scanline-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.06),
+    rgba(0, 255, 0, 0.02),
+    rgba(0, 0, 255, 0.06)
+  );
+  background-size: 100% 4px, 6px 100%;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--scan-opacity);
+  transition: opacity 0.4s ease;
+}
+
+/* Grid & Bento Layout */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+  margin: 40px auto;
+  max-width: 1200px;
+}
+
+.bento-item {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary);
+}
+
+.bento-item.glass {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.hologram-mode .bento-item.glass {
+  background: rgba(7, 18, 10, 0.7);
+  border: 1.5px solid var(--border);
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.05);
+}
+
+.hologram-mode .bento-item:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 25px rgba(0, 255, 102, 0.2);
+}
+
+/* Bento Span Modifiers */
+.span-12 { grid-column: span 12; }
+.span-8 { grid-column: span 8; }
+.span-6 { grid-column: span 6; }
+.span-4 { grid-column: span 4; }
+.span-3 { grid-column: span 3; }
+
+/* Responsive spans */
+@media (max-width: 992px) {
+  .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+  .bento-grid { display: flex; flex-direction: column; gap: 20px; padding: 0 16px; }
+}
+
+/* Futuristic Tech UI Elements */
+.tech-font {
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+}
+
+.glow-text {
+  text-shadow: var(--glow);
+}
+
+.cyber-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  background: rgba(0, 255, 102, 0.05);
+}
+
+.cyber-btn {
+  background: var(--primary);
+  color: var(--bg);
+  border: 1px solid var(--primary-light);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+}
+
+.cyber-btn:hover {
+  background: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--glow);
+}
+
+.cyber-btn.outline {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.cyber-btn.outline:hover {
+  background: var(--primary);
+  color: var(--bg);
+}
+
+.hologram-mode .cyber-btn {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.15);
+}
+
+.hologram-mode .cyber-btn:hover {
+  background: var(--primary);
+  color: #030805;
+  box-shadow: var(--glow);
+}
+
+/* Animations */
+@keyframes grid-pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.3; }
+}
+
+.grid-bg-effects {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: center;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.hologram-mode .grid-bg-effects {
+  background-image: 
+    linear-gradient(rgba(0, 255, 102, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 102, 0.08) 1px, transparent 1px);
+  animation: grid-pulse 4s infinite ease-in-out;
+}
+
+@keyframes scan-down {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.laser-scanner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  animation: scan-down 6s infinite linear;
+  opacity: 0.7;
+  pointer-events: none;
+  display: none;
+}
+
+.hologram-mode .laser-scanner {
+  display: block;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+}
+
+.ticker-content {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker-scroll 35s infinite linear;
+}
+
+.ticker-content:hover {
+  animation-play-state: paused;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 40px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hologram-mode .ticker-wrap {
+  background: #050b07;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Calculator Range Slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: var(--border);
+  border-radius: 3px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -7px;
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+  transition: transform 0.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.hologram-mode input[type="range"]::-webkit-slider-thumb {
+  box-shadow: var(--glow);
+}
+
+/* SVG India Map Styling */
+.india-svg-path {
+  fill: var(--bg);
+  stroke: var(--border);
+  stroke-width: 1px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.india-svg-path:hover {
+  fill: rgba(0, 255, 102, 0.12);
+  stroke: var(--primary);
+  filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.2));
+}
+
+.india-svg-path.active {
+  fill: rgba(0, 255, 102, 0.25);
+  stroke: var(--primary);
+  stroke-width: 1.5px;
+}
+
+.hologram-mode .india-svg-path {
+  fill: #061109;
+  stroke: #163622;
+}
+
+.hologram-mode .india-svg-path:hover {
+  fill: rgba(0, 255, 102, 0.2);
+  stroke: var(--primary);
+}
+
+/* Quick Selectors & Chips */
+.hologram-mode select, .hologram-mode input {
+  background-color: #07120a;
+  border-color: #143521;
+  color: var(--text);
+}
+
+.hologram-mode select:focus, .hologram-mode input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+}

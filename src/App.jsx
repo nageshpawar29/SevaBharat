@@ -2,19 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
 
 const COLORS = {
-    primary: "#1a7a4a",
-    primaryLight: "#2ecc71",
-    primaryDark: "#0d5c35",
-    accent: "#f39c12",
-    accentLight: "#f7c55a",
-    blue: "#2980b9",
-    blueLight: "#3498db",
-    danger: "#e74c3c",
-    bg: "#f5f9f6",
-    card: "#ffffff",
-    text: "#1a2e23",
-    textMuted: "#5a7a65",
-    border: "#d4e8da",
+    primary: "var(--primary)",
+    primaryLight: "var(--primary-light)",
+    primaryDark: "var(--primary-dark)",
+    accent: "var(--accent)",
+    accentLight: "var(--accent-light)",
+    blue: "var(--blue)",
+    blueLight: "var(--blue-light)",
+    danger: "var(--danger)",
+    bg: "var(--bg)",
+    card: "var(--card)",
+    text: "var(--text)",
+    textMuted: "var(--text-muted)",
+    border: "var(--border)",
 };
 
 const CAUSES = [
@@ -270,6 +270,13 @@ export default function App() {
     const [notification, setNotification] = useState(null);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [hasDetectedRoute, setHasDetectedRoute] = useState(false);
+    const [hologramMode, setHologramMode] = useState(() => {
+        return localStorage.getItem("sevabharat_theme") === "hologram";
+    });
+
+    useEffect(() => {
+        localStorage.setItem("sevabharat_theme", hologramMode ? "hologram" : "standard");
+    }, [hologramMode]);
 
     // Initial Route Detection
     useEffect(() => {
@@ -361,38 +368,38 @@ export default function App() {
     ];
 
     return (
-        <div style={{ fontFamily: "'Poppins', 'Segoe UI', sans-serif", background: COLORS.bg, minHeight: "100vh", color: COLORS.text }}>
+        <div className={hologramMode ? "hologram-mode" : ""} style={{ fontFamily: "'Outfit', 'Poppins', sans-serif", background: COLORS.bg, minHeight: "100vh", color: COLORS.text, transition: "all 0.4s ease" }}>
+            <div className="scanline-overlay"></div>
             <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         a { color: inherit; text-decoration: none; }
         button { cursor: pointer; font-family: inherit; border: none; outline: none; }
         input, select, textarea { font-family: inherit; }
         .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12) !important; }
-        .btn-primary { background: linear-gradient(135deg, #1a7a4a, #2ecc71); color: white; border-radius: 8px; padding: 12px 24px; font-weight: 600; font-size: 15px; transition: all 0.2s; }
-        .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
-        .btn-outline { background: transparent; border: 2px solid #1a7a4a; color: #1a7a4a; border-radius: 8px; padding: 10px 22px; font-weight: 600; font-size: 14px; transition: all 0.2s; }
-        .btn-outline:hover { background: #1a7a4a; color: white; }
-        .card { background: white; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
-        .progress-bar { background: #e8f5ee; border-radius: 99px; height: 8px; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #1a7a4a, #2ecc71); transition: width 0.8s ease; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover) !important; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: var(--bg); border-radius: 8px; padding: 12px 24px; font-weight: 600; font-size: 15px; transition: all 0.2s; box-shadow: var(--shadow); }
+        .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: var(--shadow-hover); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); border-radius: 8px; padding: 10px 22px; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+        .btn-outline:hover { background: var(--primary); color: var(--bg); }
+        .card { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: all 0.3s; }
+        .progress-bar { background: var(--border); border-radius: 99px; height: 8px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--primary-light)); transition: width 0.8s ease; }
         .tag { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
-        .urgent-badge { background: #fef0ef; color: #c0392b; }
-        .input-field { width: 100%; padding: 12px 16px; border: 1.5px solid #d4e8da; border-radius: 10px; font-size: 15px; transition: border-color 0.2s; outline: none; background: white; }
-        .input-field:focus { border-color: #1a7a4a; }
-        .hero-bg { background: linear-gradient(135deg, #0d5c35 0%, #1a7a4a 40%, #27ae60 100%); }
+        .urgent-badge { background: rgba(231, 76, 60, 0.1); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.2); }
+        .input-field { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; transition: border-color 0.2s; outline: none; background: var(--card); color: var(--text); }
+        .input-field:focus { border-color: var(--primary); }
+        .hero-bg { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 40%, var(--primary-light) 100%); position: relative; overflow: hidden; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.5s ease forwards; }
         @keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
         .notif { position: fixed; top: 80px; right: 20px; z-index: 9999; padding: 14px 24px; border-radius: 12px; font-weight: 500; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease; max-width: 360px; }
-        .notif-success { background: #1a7a4a; color: white; }
-        .notif-error { background: #e74c3c; color: white; }
+        .notif-success { background: var(--primary); color: var(--bg); }
+        .notif-error { background: var(--danger); color: white; }
         .stat-card { text-align: center; }
-        .stat-num { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; color: white; line-height: 1; }
-        .stat-label { font-size: 14px; color: rgba(255,255,255,0.8); margin-top: 6px; }
-        .section-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: #1a2e23; }
-        .section-sub { font-size: 16px; color: #5a7a65; margin-top: 8px; }
+        .stat-num { font-family: var(--font-sans); font-size: 42px; font-weight: 800; color: white; line-height: 1; }
+        .stat-label { font-size: 14px; color: rgba(255,255,255,0.85); margin-top: 6px; }
+        .section-title { font-family: var(--font-sans); font-size: 36px; font-weight: 800; color: var(--text); }
+        .section-sub { font-size: 16px; color: var(--text-muted); margin-top: 8px; }
         @media (max-width: 768px) {
           .section-title { font-size: 26px; }
           .stat-num { font-size: 30px; }
@@ -402,15 +409,15 @@ export default function App() {
         }
         @media (min-width: 769px) { .mobile-menu-btn { display: none !important; } }
         .chip { padding: 8px 18px; border-radius: 99px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1.5px solid; transition: all 0.18s; }
-        .chip-active { background: #1a7a4a; color: white; border-color: #1a7a4a; }
-        .chip-inactive { background: white; color: #1a7a4a; border-color: #d4e8da; }
-        .chip-inactive:hover { border-color: #1a7a4a; }
+        .chip-active { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+        .chip-inactive { background: var(--card); color: var(--primary); border-color: var(--border); }
+        .chip-inactive:hover { border-color: var(--primary); }
         table { border-collapse: collapse; width: 100%; }
-        th { text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5a7a65; padding: 10px 14px; background: #f5f9f6; }
-        td { padding: 12px 14px; font-size: 14px; border-top: 1px solid #f0f4f2; }
-        tr:hover td { background: #f9fdfb; }
-        .award-card { border-radius: 16px; padding: 24px; background: white; box-shadow: 0 2px 16px rgba(0,0,0,0.07); border-left: 4px solid #1a7a4a; transition: all 0.2s; }
-        .award-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
+        th { text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); padding: 10px 14px; background: var(--bg); }
+        td { padding: 12px 14px; font-size: 14px; border-top: 1px solid var(--border); }
+        tr:hover td { background: var(--bg); }
+        .award-card { border-radius: 16px; padding: 24px; background: var(--card); box-shadow: var(--shadow); border-left: 4px solid var(--primary); transition: all 0.2s; }
+        .award-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
       `}</style>
 
             {/* Notification */}
@@ -419,31 +426,54 @@ export default function App() {
             )}
 
             {/* Navbar */}
-            <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "white", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+            <nav style={{ position: "sticky", top: 0, zIndex: 100, background: COLORS.card, borderBottom: `1px solid ${COLORS.border}`, boxShadow: "0 2px 12px rgba(0,0,0,0.03)", transition: "all 0.4s" }}>
                 <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div onClick={() => navigate("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#1a7a4a,#2ecc71)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🌿</div>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,var(--primary),var(--primary-light))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, boxShadow: "0 2px 8px rgba(0,255,102,0.2)" }}>🌿</div>
                         <div>
-                            <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 18, color: COLORS.primary, lineHeight: 1.1 }}>SevaBharat</div>
-                            <div style={{ fontSize: 10, color: COLORS.textMuted, letterSpacing: "0.5px" }}>NGO GIVING PLATFORM</div>
+                            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 19, color: COLORS.primary, lineHeight: 1.1, letterSpacing: "-0.5px" }} className="glow-text">SevaBharat</div>
+                            <div style={{ fontSize: 9, color: COLORS.textMuted, letterSpacing: "1px", fontWeight: 700 }}>NGO GIVING PLATFORM</div>
                         </div>
                     </div>
                     <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         {navLinks.map(l => (
                             <button key={l.key} onClick={() => navigate(l.key)}
-                                style={{ padding: "8px 14px", borderRadius: 8, background: page === l.key ? "#e8f5ee" : "transparent", color: page === l.key ? COLORS.primary : COLORS.textMuted, fontWeight: page === l.key ? 600 : 400, fontSize: 14, transition: "all 0.2s" }}>
+                                style={{ padding: "8px 14px", borderRadius: 8, background: page === l.key ? "rgba(0, 255, 102, 0.08)" : "transparent", color: page === l.key ? COLORS.primary : COLORS.textMuted, fontWeight: page === l.key ? 700 : 500, fontSize: 14, transition: "all 0.2s" }}
+                                className={page === l.key ? "glow-text" : ""}>
                                 {l.label}
                             </button>
                         ))}
-                        <button className="btn-primary" onClick={() => navigate("donate")} style={{ marginLeft: 8, padding: "9px 20px", fontSize: 14 }}>Donate Now</button>
+                        
+                        {/* Futuristic Hologram Mode Toggle */}
+                        <button onClick={() => setHologramMode(!hologramMode)}
+                            style={{ 
+                                marginLeft: 12, 
+                                padding: "8px 14px", 
+                                borderRadius: 8, 
+                                background: hologramMode ? "rgba(0, 255, 102, 0.12)" : "rgba(26, 122, 74, 0.05)", 
+                                border: `1px solid ${hologramMode ? "var(--primary)" : "transparent"}`,
+                                color: hologramMode ? "var(--primary)" : COLORS.textMuted, 
+                                fontSize: 12, 
+                                fontWeight: 700,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                                cursor: "pointer",
+                                transition: "all 0.3s"
+                            }}
+                            className="glow-text">
+                            {hologramMode ? "⚡ HOLO ON" : "👁️ STANDARD UI"}
+                        </button>
+
+                        <button className="btn-primary" onClick={() => navigate("donate")} style={{ marginLeft: 12, padding: "9px 20px", fontSize: 14 }}>Donate Now</button>
                         {user ? (
                             <button onClick={() => navigate(adminAuth ? "admin" : "dashboard")} 
-                                style={{ marginLeft: 4, padding: "9px 14px", borderRadius: 8, background: COLORS.primaryLight, color: "white", fontSize: 13, fontWeight: 600 }}>
+                                style={{ marginLeft: 4, padding: "9px 14px", borderRadius: 8, background: COLORS.primaryLight, color: COLORS.bg, fontSize: 13, fontWeight: 700 }}>
                                 {adminAuth ? "Admin Dashboard" : "My Account"}
                             </button>
                         ) : (
                             <button onClick={() => navigate("login")} 
-                                style={{ marginLeft: 4, padding: "9px 14px", borderRadius: 8, background: "#f0f4f2", color: COLORS.textMuted, fontSize: 13, fontWeight: 500 }}>
+                                style={{ marginLeft: 4, padding: "9px 14px", borderRadius: 8, background: "rgba(0,0,0,0.03)", color: COLORS.textMuted, fontSize: 13, fontWeight: 600, border: `1px solid ${COLORS.border}` }}>
                                 Login
                             </button>
                         )}
@@ -456,17 +486,36 @@ export default function App() {
                     </button>
                 </div>
                 {showMobileMenu && (
-                    <div style={{ background: "white", borderTop: "1px solid #f0f4f2", padding: "12px 20px" }}>
+                    <div style={{ background: COLORS.card, borderTop: `1px solid ${COLORS.border}`, padding: "12px 20px" }}>
                         {navLinks.map(l => (
                             <button key={l.key} onClick={() => navigate(l.key)}
-                                style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 0", background: "none", color: page === l.key ? COLORS.primary : COLORS.text, fontWeight: page === l.key ? 600 : 400, fontSize: 15, borderBottom: "1px solid #f5f5f5" }}>
+                                style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 0", background: "none", color: page === l.key ? COLORS.primary : COLORS.text, fontWeight: page === l.key ? 700 : 500, fontSize: 15, borderBottom: `1px solid ${COLORS.border}` }}>
                                 {l.label}
                             </button>
                         ))}
+                        
+                        <button onClick={() => setHologramMode(!hologramMode)}
+                            style={{ 
+                                marginTop: 12, 
+                                width: "100%", 
+                                padding: "12px", 
+                                borderRadius: 8, 
+                                background: hologramMode ? "rgba(0, 255, 102, 0.15)" : "#f0f4f2", 
+                                border: hologramMode ? "1px solid var(--primary)" : "none",
+                                color: hologramMode ? "var(--primary)" : COLORS.textMuted, 
+                                fontWeight: 700,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 6
+                            }}>
+                            {hologramMode ? "⚡ HOLOGRAM ON" : "👁️ SWITCH TO HOLOGRAM"}
+                        </button>
+
                         <button className="btn-primary" onClick={() => navigate("donate")} style={{ marginTop: 12, width: "100%" }}>Donate Now</button>
                         {user ? (
                             <button onClick={() => navigate(adminAuth ? "admin" : "dashboard")} 
-                                style={{ marginTop: 12, width: "100%", padding: "12px", borderRadius: 8, background: COLORS.primaryLight, color: "white", fontWeight: 600 }}>
+                                style={{ marginTop: 12, width: "100%", padding: "12px", borderRadius: 8, background: COLORS.primaryLight, color: COLORS.bg, fontWeight: 700 }}>
                                 {adminAuth ? "Admin Dashboard" : "My Account"}
                             </button>
                         ) : (
@@ -539,124 +588,495 @@ export default function App() {
         </div>
     );
 }
+// ==========================================
+// FUTURISTIC BENTO GRID WIDGETS
+// ==========================================
+
+function LiveTickerWidget() {
+    const updates = [
+        "🔥 URGENT CAUSE: Assam Flood Relief requires food kits for 5,000 families.",
+        "📚 BRIGHT FUTURES: Computer lab set up in Bihar school complete.",
+        "🌳 HARITABHUMI: 5,200 native trees successfully planted and tagged.",
+        "🏥 HEALTH ACCESS: Mobile medical clinic starts service in Rajasthan rural block.",
+        "🍚 ZERO HUNGER: 10,000 mid-day meals successfully distributed today.",
+        "🏆 MILESTONE: SevaBharat crossed 12,600 registered donors across India."
+    ];
+
+    const doubleUpdates = [...updates, ...updates];
+
+    return (
+        <div className="ticker-wrap" style={{ transition: "all 0.4s" }}>
+            <div className="ticker-content">
+                {doubleUpdates.map((item, idx) => (
+                    <div key={idx} className="ticker-item">
+                        <span style={{ color: "var(--primary)", fontWeight: 700 }}>⚡</span>
+                        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700, color: "var(--text)" }} className="tech-font">{item}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function LiveActivityLogWidget() {
+    const logPool = [
+        "SYS: Supabase listener active on donations table...",
+        "SECURE PORT: SSL handshake established successfully.",
+        "DB ALERT: New donation of ₹2,500 for Zero Hunger.",
+        "NGO STATUS: Shiksha Daan audited - 100% compliant.",
+        "FUND UPDATE: Assam Flood Relief reached 85% of goal.",
+        "SYS CALC: Section 80G tax receipt dispatched to donor.",
+        "COMMUNITY: Priya K. set up monthly donation of ₹1,000.",
+        "EVENT: HaritaBhumi Trust planted 120 trees in Rajasthan.",
+        "SYS LOG: Mobile clinic support dispatch verified.",
+        "PAY STATUS: UPI transaction SB298410 verified.",
+        "DB UPDATE: Total lives impacted updated to 48,000+.",
+        "COMMUNITY: Aarav Patel contributed ₹5,000 for remote health."
+    ];
+
+    const [logs, setLogs] = useState([
+        "SYSTEM INITIALIZATION...",
+        "SYS: Supabase listener active on donations table...",
+        "SECURE PORT: SSL handshake established successfully.",
+        "DB UPDATE: Total lives impacted updated to 48,000+."
+    ]);
+    const [index, setIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setLogs(prev => {
+                const nextLogs = [...prev, logPool[index]];
+                if (nextLogs.length > 5) nextLogs.shift();
+                return nextLogs;
+            });
+            setIndex(i => (i + 1) % logPool.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [index]);
+
+    return (
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "var(--primary)" }} className="tech-font">📡 Live Network Activity</span>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--primary)", display: "inline-block", boxShadow: "var(--glow)" }}></span>
+                </div>
+                <div style={{ background: "rgba(0, 0, 0, 0.04)", border: "1px solid var(--border)", borderRadius: 10, padding: 14, minHeight: 170, fontFamily: "var(--font-mono)", fontSize: 11, display: "flex", flexDirection: "column", gap: 8, color: "var(--text-muted)", transition: "all 0.3s" }} className="tech-font">
+                    {logs.map((log, idx) => (
+                        <div key={idx} style={{ color: log.startsWith("DB ALERT") || log.startsWith("DB UPDATE") ? "var(--primary)" : log.startsWith("SYSTEM") ? "var(--accent)" : "var(--text)" }}>
+                            {log.startsWith("SYS") || log.startsWith("DB") ? "> " : ""}{log}
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <div style={{ marginTop: 12, fontSize: 11, color: "var(--text-muted)", display: "flex", justifyContent: "space-between" }} className="tech-font">
+                <span>DB Status: Connected</span>
+                <span>Uptime: 99.98%</span>
+            </div>
+        </div>
+    );
+}
+
+function IndiaMapWidget({ filterState, setFilterState }) {
+    const states = [
+        { id: "rajasthan", name: "Rajasthan", x: 130, y: 170, projects: "Rural Health Access, Water Harvesting", count: 2 },
+        { id: "bihar", name: "Bihar & Jharkhand", x: 280, y: 170, projects: "Bright Futures Education, Tribal Schools", count: 2 },
+        { id: "assam", name: "Assam", x: 370, y: 150, projects: "Assam Flood Relief & Rescue Kits", count: 1 },
+        { id: "maharashtra", name: "Maharashtra & Pune", x: 160, y: 260, projects: "Zero Hunger, Senior Home Care", count: 2 },
+        { id: "odisha", name: "Odisha & Chhattisgarh", x: 260, y: 230, projects: "Clean Drinking Water Project, Solar Grids", count: 2 },
+        { id: "karnataka", name: "Karnataka", x: 180, y: 340, projects: "Rural Digital Labs, Animal Welfare", count: 2 }
+    ];
+
+    const activeState = states.find(s => s.id === filterState) || null;
+
+    return (
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <div>
+                        <span className="cyber-badge" style={{ marginBottom: 4 }}>Command Center</span>
+                        <h3 style={{ fontSize: 18, fontWeight: 800 }}>National Project Node Map</h3>
+                    </div>
+                    {filterState && (
+                        <button onClick={() => setFilterState(null)} style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--primary)", fontSize: 11, padding: "4px 8px", borderRadius: 6, cursor: "pointer", fontWeight: 700 }} className="tech-font">
+                            Clear Filter
+                        </button>
+                    )}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16, alignItems: "center" }}>
+                    {/* SVG Map of India (Stylized blueprint grid) */}
+                    <div style={{ position: "relative", background: "rgba(0, 0, 0, 0.02)", border: "1px solid var(--border)", borderRadius: 12, padding: 8, display: "flex", justifyContent: "center", alignItems: "center", height: 230, overflow: "hidden" }}>
+                        <svg viewBox="0 0 420 420" style={{ width: "100%", height: "100%", maxHeight: 220 }}>
+                            {/* Blueprint grid pattern */}
+                            <defs>
+                                <pattern id="map-grid" width="16" height="16" patternUnits="userSpaceOnUse">
+                                    <path d="M 16 0 L 0 0 0 16" fill="none" stroke="var(--border)" strokeWidth="0.5" opacity="0.25"/>
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#map-grid)" rx="8" />
+
+                            {/* Outer India Path Silhouette */}
+                            <path d="M 175,70 L 210,35 L 245,70 L 260,110 L 270,140 L 320,140 L 350,165 L 325,190 L 300,205 L 285,205 L 270,220 L 260,250 L 245,280 L 220,330 L 210,360 L 200,360 L 195,330 L 170,280 L 155,250 L 155,220 L 135,210 L 110,200 L 95,185 L 110,160 L 135,150 L 150,135 L 160,110 Z" 
+                                  fill="rgba(0, 255, 102, 0.02)" stroke="var(--primary)" strokeWidth="1.5" opacity="0.3" style={{ transition: "all 0.3s" }} className="india-svg-path" />
+
+                            {/* Hotspots */}
+                            {states.map(state => {
+                                const isActive = filterState === state.id;
+                                return (
+                                    <g key={state.id} onClick={() => setFilterState(isActive ? null : state.id)} style={{ cursor: "pointer" }}>
+                                        <circle cx={state.x} cy={state.y} r={isActive ? 14 : 9} fill="var(--primary)" opacity={isActive ? 0.35 : 0.15}>
+                                            <animate attributeName="r" values={isActive ? "10;18;10" : "7;13;7"} dur="2s" repeatCount="indefinite" />
+                                        </circle>
+                                        <circle cx={state.x} cy={state.y} r={isActive ? 6 : 4} fill={isActive ? "var(--accent)" : "var(--primary)"} style={{ filter: "drop-shadow(0 0 3px var(--primary))" }} />
+                                    </g>
+                                );
+                            })}
+                        </svg>
+                    </div>
+
+                    {/* Node Details Info Panel */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, height: "100%", justifyContent: "center" }}>
+                        {activeState ? (
+                            <div className="fade-in" style={{ padding: 12, border: "1px solid var(--primary)", borderRadius: 10, background: "rgba(0, 255, 102, 0.03)", boxShadow: "var(--shadow)" }}>
+                                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--primary)" }}>📍 {activeState.name}</div>
+                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 6, fontWeight: 700, textTransform: "uppercase" }}>Impact Projects</div>
+                                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text)", marginTop: 2, lineHeight: 1.4 }}>{activeState.projects}</div>
+                                <div style={{ fontSize: 10, color: "var(--accent)", fontWeight: 700, marginTop: 8 }} className="tech-font">{activeState.count} campaigns detected</div>
+                            </div>
+                        ) : (
+                            <div style={{ padding: 12, border: "1px dashed var(--border)", borderRadius: 10, textAlign: "center", color: "var(--text-muted)", fontSize: 11, display: "flex", flexDirection: "column", gap: 6 }}>
+                                <span style={{ fontSize: 18 }}>🌐</span>
+                                <span>Click pulsing map coordinates to examine regional NGO projects.</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "left", marginTop: 8 }} className="tech-font">
+                * Real-time geospatial allocation verified via Ledger nodes.
+            </div>
+        </div>
+    );
+}
+
+function ImpactCalculatorWidget({ navigate }) {
+    const [calcCat, setCalcCat] = useState("Education");
+    const [amount, setAmount] = useState(2500);
+
+    const getImpactText = (cat, val) => {
+        if (cat === "Education") {
+            const supplyCount = Math.floor(val / 500);
+            const tabCount = Math.floor(val / 10000);
+            if (val >= 25000) return `Establish a fully-equipped mini smart computer lab in a tribal school.`;
+            if (val >= 10000) return `Provide digital learning tablets and network access for ${tabCount} rural students.`;
+            return `Provide comprehensive study supply kits (textbooks, bag, uniform) for ${supplyCount} children.`;
+        } else if (cat === "Environment") {
+            const treeCount = Math.floor(val / 100);
+            if (val >= 25000) return `Restore 3 acres of community forest land and pay for local community wardens.`;
+            if (val >= 10000) return `Establish a community solar street light system in an off-grid village.`;
+            return `Plant and care for ${treeCount} native trees employing rural forest managers.`;
+        } else if (cat === "Healthcare") {
+            const kitCount = Math.floor(val / 250);
+            const cataractCount = Math.floor(val / 5000);
+            if (val >= 25000) return `Install a solar-powered clean community water purification hub for a village.`;
+            if (val >= 5000) return `Sponsor restorative eye cataract surgeries for ${cataractCount} senior villagers.`;
+            return `Sponsor critical health kits and mobile clinic checkups for ${kitCount} rural families.`;
+        } else {
+            const mealsCount = Math.floor(val / 50);
+            if (val >= 25000) return `Set up a micro-sewing mill center empowering 5 women artisans.`;
+            if (val >= 5000) return `Deliver highly nutritious dry ration grocery packs to ${Math.floor(mealsCount/4)} families.`;
+            return `Deliver fresh hot mid-day meals to ${mealsCount} underprivileged children.`;
+        }
+    };
+
+    const handleQuickDonate = () => {
+        const catMap = {
+            "Education": "Education",
+            "Healthcare": "Healthcare",
+            "Hunger & Poverty": "Hunger & Poverty",
+            "Environment": "Environment"
+        };
+        const searchCategory = catMap[calcCat] || "Education";
+        const matchingCause = CAUSES.find(c => c.category === searchCategory) || CAUSES[0];
+        
+        navigate("donate", {
+            ...matchingCause,
+            prefilledAmount: amount
+        });
+    };
+
+    return (
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div>
+                <span className="cyber-badge" style={{ marginBottom: 4 }}>Visualizer Engine</span>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 14 }}>Interactive Impact Calculator</h3>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                    <div>
+                        <label style={{ display: "block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 4 }}>Cause Area</label>
+                        <select className="input-field" value={calcCat} onChange={e => setCalcCat(e.target.value)} style={{ padding: "8px 10px", borderRadius: 8, fontSize: 13 }}>
+                            <option value="Education">📚 Education</option>
+                            <option value="Healthcare">🏥 Healthcare</option>
+                            <option value="Hunger & Poverty">🍚 Hunger & Poverty</option>
+                            <option value="Environment">🌳 Environment</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ display: "block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 4 }}>Contribution</label>
+                        <div style={{ position: "relative" }}>
+                            <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, color: "var(--primary)" }}>₹</span>
+                            <input className="input-field" type="number" value={amount} onChange={e => setAmount(Math.max(0, parseInt(e.target.value) || 0))} style={{ padding: "8px 10px 8px 22px", borderRadius: 8, fontSize: 13, fontWeight: 700 }} />
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{ margin: "14px 0" }}>
+                    <input type="range" min="500" max="50000" step="500" value={amount} onChange={e => setAmount(parseInt(e.target.value))} />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginTop: 4, fontWeight: 600 }}>
+                        <span>₹500</span>
+                        <span>₹10,000</span>
+                        <span>₹25,000</span>
+                        <span>₹50,000</span>
+                    </div>
+                </div>
+
+                <div style={{ padding: 12, background: "rgba(0, 255, 102, 0.03)", border: "1px solid var(--border)", borderRadius: 10, minHeight: 70 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.5px" }} className="tech-font">Direct Social Outcome</div>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginTop: 4, lineHeight: 1.4 }}>
+                        {getImpactText(calcCat, amount)}
+                    </p>
+                </div>
+            </div>
+
+            <button className="cyber-btn" onClick={handleQuickDonate} style={{ width: "100%", padding: 10, fontSize: 13, marginTop: 12 }}>
+                ⚡ Express Donate ₹{amount.toLocaleString("en-IN")}
+            </button>
+        </div>
+    );
+}
+
+function TaxEstimatorWidget() {
+    const [income, setIncome] = useState(1200000);
+    const [donation, setDonation] = useState(5000);
+
+    const getTaxSavings = (incomeVal, donationVal) => {
+        const exemptedAmount = donationVal * 0.5; // 80G is 50%
+        let slabRate = 0.05;
+        if (incomeVal > 1500000) slabRate = 0.30;
+        else if (incomeVal > 1200000) slabRate = 0.20;
+        else if (incomeVal > 800000) slabRate = 0.15;
+        else if (incomeVal > 500000) slabRate = 0.10;
+        return Math.round(exemptedAmount * slabRate);
+    };
+
+    const savings = getTaxSavings(income, donation);
+
+    return (
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div>
+                <span className="cyber-badge" style={{ marginBottom: 4 }}>Exemption Calculator</span>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 14 }}>Tax Savings Estimator (80G)</h3>
+
+                <div style={{ marginBottom: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                        <span>Annual Taxable Income</span>
+                        <span style={{ color: "var(--primary)", fontWeight: 700 }}>₹{income.toLocaleString("en-IN")}</span>
+                    </div>
+                    <input type="range" min="300000" max="3000000" step="50000" value={income} onChange={e => setIncome(parseInt(e.target.value))} />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>
+                        <span>₹3L</span>
+                        <span>₹15L</span>
+                        <span>₹30L</span>
+                    </div>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                        <span>Target Donation Value</span>
+                        <span style={{ color: "var(--primary)", fontWeight: 700 }}>₹{donation.toLocaleString("en-IN")}</span>
+                    </div>
+                    <input type="range" min="1000" max="100000" step="1000" value={donation} onChange={e => setDonation(parseInt(e.target.value))} />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>
+                        <span>₹1,000</span>
+                        <span>₹50,000</span>
+                        <span>₹1L</span>
+                    </div>
+                </div>
+
+                <div style={{ padding: 12, background: "rgba(243, 156, 18, 0.06)", border: "1px solid rgba(243, 156, 18, 0.2)", borderRadius: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)" }} className="tech-font">Tax Exemption Value</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>80G rebate amount</div>
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "var(--accent)" }}>
+                        ₹{savings.toLocaleString("en-IN")}
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ fontSize: 10, color: "var(--text-muted)", lineHeight: 1.4, marginTop: 12 }}>
+                * Standard 80G certificate is automatically compiled and dispatched via receipt email on validation.
+            </div>
+        </div>
+    );
+}
+
+// ==========================================
+// UPGRADED BENTO-GRID HOME PAGE
+// ==========================================
 
 function HomePage({ navigate, totalRaised, totalDonors }) {
-    const featured = CAUSES.filter(c => c.id !== 6).slice(0, 4);
+    const [filterState, setFilterState] = useState(null);
+
+    // Map selected state to actual campaigns
+    const stateFilterMap = {
+        rajasthan: "Rajasthan",
+        bihar: "Bihar",
+        assam: "Assam",
+        maharashtra: "Maharashtra",
+        odisha: "Odisha",
+        karnataka: "Karnataka"
+    };
+
+    const selectedStateName = stateFilterMap[filterState];
+
+    const filteredCauses = selectedStateName 
+        ? CAUSES.filter(c => c.location.toLowerCase().includes(selectedStateName.toLowerCase()))
+        : CAUSES.filter(c => c.id !== 6);
+
+    const featured = filteredCauses.slice(0, 3);
 
     return (
         <div className="fade-in">
-            {/* Hero */}
-            <div className="hero-bg" style={{ padding: "80px 20px", textAlign: "center" }}>
-                <div style={{ maxWidth: 800, margin: "0 auto" }}>
-                    <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 99, padding: "6px 18px", fontSize: 13, color: "rgba(255,255,255,0.9)", marginBottom: 20, fontWeight: 500 }}>
-                        🌿 India's Most Trusted NGO Giving Platform
-                    </div>
-                    <h1 className="hero-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 52, fontWeight: 700, color: "white", lineHeight: 1.2, marginBottom: 20 }}>
-                        Together We Can<br />
-                        <span style={{ color: "#a8edca" }}>Change India</span>
-                    </h1>
-                    <p style={{ fontSize: 18, color: "rgba(255,255,255,0.85)", marginBottom: 36, lineHeight: 1.7 }}>
-                        Your donation reaches verified NGOs working in education, healthcare, disaster relief, hunger, and the environment. Transparent. Impactful. Accountable.
-                    </p>
-                    <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-                        <button className="btn-primary" onClick={() => navigate("donate")}
-                            style={{ padding: "15px 36px", fontSize: 17, background: "white", color: COLORS.primary, borderRadius: 10 }}>
-                            💚 Donate Now
-                        </button>
-                        <button onClick={() => navigate("explore")}
-                            style={{ padding: "15px 36px", fontSize: 17, background: "rgba(255,255,255,0.15)", color: "white", borderRadius: 10, border: "2px solid rgba(255,255,255,0.4)", cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
-                            Explore Causes →
-                        </button>
-                    </div>
-                    {/* Stats */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 20, marginTop: 56, padding: "28px 24px", background: "rgba(0,0,0,0.2)", borderRadius: 16 }}>
-                        {[
-                            { num: "₹4.7Cr+", label: "Total Raised" },
-                            { num: "12,600+", label: "Donors" },
-                            { num: "48,000+", label: "Lives Impacted" },
-                            { num: "6", label: "Cause Categories" },
-                        ].map(s => (
-                            <div key={s.label} className="stat-card">
-                                <div className="stat-num">{s.num}</div>
-                                <div className="stat-label">{s.label}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Categories strip */}
-            <div style={{ background: "white", padding: "20px", borderBottom: "1px solid #eee" }}>
-                <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4 }}>
-                    {Object.entries(catColors).map(([cat, col]) => (
-                        <button key={cat} onClick={() => navigate("explore")}
-                            style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 99, border: `1.5px solid ${col}20`, background: `${col}10`, color: col, fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", cursor: "pointer", fontFamily: "inherit" }}>
-                            {cat === "Education" ? "📚" : cat === "Healthcare" ? "🏥" : cat === "Disaster Relief" ? "🆘" : cat === "Hunger & Poverty" ? "🍚" : "🌳"} {cat}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Featured Causes */}
-            <div style={{ maxWidth: 1200, margin: "60px auto", padding: "0 20px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32 }}>
-                    <div>
-                        <div className="section-title">Featured Causes</div>
-                        <div className="section-sub">Every cause is verified. Every rupee is tracked.</div>
-                    </div>
-                    <button className="btn-outline" onClick={() => navigate("explore")}>View All →</button>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 24 }}>
-                    {featured.map(c => <CauseCard key={c.id} cause={c} navigate={navigate} />)}
-                </div>
-            </div>
-
-            {/* How it Works */}
-            <div style={{ background: "white", padding: "60px 20px" }}>
-                <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
-                    <div className="section-title">How It Works</div>
-                    <div className="section-sub" style={{ marginBottom: 40 }}>Simple, transparent, and secure donation process</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 24 }}>
-                        {[
-                            { step: "1", icon: "🔍", title: "Choose a Cause", desc: "Browse verified NGOs across 6 impact areas" },
-                            { step: "2", icon: "💳", title: "Donate Securely", desc: "Pay via UPI, card, or net banking — 100% secure" },
-                            { step: "3", icon: "📊", title: "Track Impact", desc: "Get real-time updates on how your donation helps" },
-                            { step: "4", icon: "📜", title: "Get 80G Receipt", desc: "Instant tax exemption certificate to your email" },
-                        ].map(s => (
-                            <div key={s.step} style={{ padding: 24, borderRadius: 16, background: "#f5f9f6", textAlign: "center" }}>
-                                <div style={{ fontSize: 36, marginBottom: 12 }}>{s.icon}</div>
-                                <div style={{ fontWeight: 700, color: COLORS.primary, fontSize: 13, marginBottom: 6 }}>STEP {s.step}</div>
-                                <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>{s.title}</div>
-                                <div style={{ fontSize: 13, color: COLORS.textMuted, lineHeight: 1.6 }}>{s.desc}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Impact Banner */}
-            <div style={{ background: "linear-gradient(135deg, #1a7a4a, #0d5c35)", padding: "60px 20px", textAlign: "center" }}>
-                <div style={{ maxWidth: 700, margin: "0 auto" }}>
-                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, color: "white", marginBottom: 16 }}>
-                        "A single donation can light up an entire classroom."
-                    </div>
-                    <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 15, marginBottom: 32 }}>Join 12,600+ donors transforming India one rupee at a time.</div>
-                    <button className="btn-primary" onClick={() => navigate("donate")}
-                        style={{ background: "white", color: COLORS.primary, padding: "15px 36px", fontSize: 16 }}>
-                        Start Giving Today
-                    </button>
-                </div>
-            </div>
-
-            {/* Trusted By */}
-            <div style={{ padding: "40px 20px", background: "#f5f9f6", textAlign: "center" }}>
-                <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 20, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>Trusted & Certified By</div>
-                <div style={{ display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap", alignItems: "center" }}>
-                    {["GuideStar India", "NASSCOM Foundation", "UN SDGs", "80G Exempt", "FCRA Registered"].map(org => (
-                        <div key={org} style={{ padding: "10px 20px", background: "white", borderRadius: 10, fontSize: 14, fontWeight: 600, color: COLORS.textMuted, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                            {org}
+            {/* Bento Grid Layout Wrapper */}
+            <div style={{ maxWidth: 1200, margin: "24px auto", padding: "0 20px" }}>
+                <div className="bento-grid">
+                    
+                    {/* BENTO BLOCK 1: Hero Block (Span 8) */}
+                    <div className="bento-item span-8 hero-bg" style={{ minHeight: 320, padding: 36, display: "flex", flexDirection: "column", justifyContent: "space-between", color: "white" }}>
+                        <div className="grid-bg-effects"></div>
+                        <div className="laser-scanner"></div>
+                        
+                        <div style={{ position: "relative", zIndex: 2 }}>
+                            <span className="cyber-badge" style={{ borderColor: "rgba(255,255,255,0.4)", color: "white", background: "rgba(255,255,255,0.1)", marginBottom: 12 }}>
+                                🌿 Next-Gen Giving Protocol
+                            </span>
+                            <h1 className="hero-title" style={{ fontFamily: "var(--font-sans)", fontSize: 44, fontWeight: 800, lineHeight: 1.15, marginBottom: 16 }}>
+                                Together We Can<br />
+                                <span style={{ color: "var(--primary-light)" }} className="glow-text">Change India</span>
+                            </h1>
+                            <p style={{ fontSize: 16, color: "rgba(255, 255, 255, 0.85)", maxWidth: 520, lineHeight: 1.5 }}>
+                                Leverage modular smart-giving to direct transparent aid to verified NGOs in education, healthcare, hunger, and environment.
+                            </p>
                         </div>
-                    ))}
+
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24, position: "relative", zIndex: 2 }}>
+                            <button className="cyber-btn glow-text" onClick={() => navigate("donate")} style={{ background: "white", color: "#1a7a4a", borderColor: "white" }}>
+                                💚 Donate Now
+                            </button>
+                            <button onClick={() => navigate("explore")} className="cyber-btn outline" style={{ color: "white", borderColor: "rgba(255,255,255,0.5)" }}>
+                                Explore Causes →
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* BENTO BLOCK 2: Key Platform Stats (Span 4) */}
+                    <div className="bento-item span-4 glass" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                        <div>
+                            <span className="cyber-badge" style={{ marginBottom: 10 }}>Ledger Audit</span>
+                            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16 }}>Impact Analytics</h3>
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                            {[
+                                { val: "₹4.78 Cr", label: "Consolidated Funding Disbursed", col: "var(--primary)" },
+                                { val: "12,654", label: "Active Verified Donors Node", col: "var(--accent)" },
+                                { val: "48,000+", label: "Target Lives Impacted", col: "var(--blue)" }
+                            ].map(st => (
+                                <div key={st.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                    <div style={{ width: 4, height: 28, background: st.col, borderRadius: 2 }} />
+                                    <div>
+                                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text)" }} className="tech-font glow-text">{st.val}</div>
+                                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{st.label}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ borderTop: "1px solid var(--border)", paddingTop: 12, marginTop: 12, fontSize: 11, color: "var(--text-muted)" }} className="tech-font">
+                            ℹ Data updated hourly. Cryptographically verified.
+                        </div>
+                    </div>
+
+                    {/* BENTO BLOCK 3: Live Banner Ticker (Span 12) */}
+                    <div className="span-12" style={{ margin: "-10px 0" }}>
+                        <LiveTickerWidget />
+                    </div>
+
+                    {/* BENTO BLOCK 4: Interactive Regional Map (Span 8) */}
+                    <div className="bento-item span-8 glass">
+                        <IndiaMapWidget filterState={filterState} setFilterState={setFilterState} />
+                    </div>
+
+                    {/* BENTO BLOCK 5: Real-time Operations Console (Span 4) */}
+                    <div className="bento-item span-4 glass">
+                        <LiveActivityLogWidget />
+                    </div>
+
+                    {/* BENTO BLOCK 6: Interactive Impact Calculator (Span 6) */}
+                    <div className="bento-item span-6 glass">
+                        <ImpactCalculatorWidget navigate={navigate} />
+                    </div>
+
+                    {/* BENTO BLOCK 7: Tax Exemption Estimator (Span 6) */}
+                    <div className="bento-item span-6 glass">
+                        <TaxEstimatorWidget />
+                    </div>
+
+                    {/* BENTO BLOCK 8: Featured Causes Grid Header & Grid (Span 12) */}
+                    <div className="span-12" style={{ marginTop: 20 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
+                            <div>
+                                <span className="cyber-badge" style={{ marginBottom: 4 }}>Smart Directives</span>
+                                <h2 className="section-title">
+                                    {selectedStateName ? `Active Campaigns in ${selectedStateName}` : "Featured Campaigns"}
+                                </h2>
+                                <p className="section-sub">Direct matching funds to audit-verified NGO campaigns.</p>
+                            </div>
+                            <button className="btn-outline tech-font" onClick={() => navigate("explore")} style={{ fontSize: 12, fontWeight: 700, padding: "8px 16px" }}>
+                                VIEW ALL CAMPAIGNS →
+                            </button>
+                        </div>
+
+                        {featured.length > 0 ? (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
+                                {featured.map(c => <CauseCard key={c.id} cause={c} navigate={navigate} />)}
+                            </div>
+                        ) : (
+                            <div style={{ background: "var(--card)", padding: "48px 20px", borderRadius: 16, border: "1px dashed var(--border)", textAlign: "center", color: "var(--text-muted)" }}>
+                                <span style={{ fontSize: 32 }}>🔍</span>
+                                <p style={{ marginTop: 12, fontSize: 14 }}>No active campaigns match this state filter currently.</p>
+                                <button onClick={() => setFilterState(null)} style={{ marginTop: 12, background: "var(--primary)", color: "var(--bg)", border: "none", padding: "8px 16px", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}>
+                                    Clear Map Filter
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* BENTO BLOCK 9: NGO Certification standards (Span 12) */}
+                    <div className="bento-item span-12 glass" style={{ textAlign: "center", padding: "32px 24px" }}>
+                        <span className="cyber-badge" style={{ marginBottom: 12 }}>Trust Protocols</span>
+                        <h4 style={{ fontSize: 16, fontWeight: 800, marginBottom: 12 }}>Cryptographic Auditing & Certification Partners</h4>
+                        <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginTop: 16 }}>
+                            {["GuideStar India Platinum", "NASSCOM Social Audit", "UN SDG Compliant", "Section 80G Certified", "FCRA Node Validated"].map(org => (
+                                <div key={org} style={{ padding: "8px 16px", background: "rgba(0, 0, 0, 0.03)", border: "1px solid var(--border)", borderRadius: 10, fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }} className="tech-font">
+                                    🛡️ {org}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -667,32 +1087,35 @@ function CauseCard({ cause, navigate }) {
     const p = pct(cause.raised, cause.goal);
     const catColor = catColors[cause.category] || COLORS.primary;
     return (
-        <div className="card hover-lift cause-card" style={{ overflow: "hidden", cursor: "pointer", border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }} onClick={() => navigate("donate", cause)}>
+        <div className="card hover-lift cause-card" style={{ overflow: "hidden", cursor: "pointer", border: "1px solid var(--border)", background: "var(--card)", display: "flex", flexDirection: "column", height: "100%", boxShadow: "var(--shadow)" }} onClick={() => navigate("donate", cause)}>
             <div style={{ position: "relative", overflow: "hidden" }}>
-                <img src={cause.image} alt={cause.title} className="cause-img" style={{ width: "100%", height: 210, objectFit: "cover", display: "block", transition: "transform 0.5s ease" }} loading="lazy" />
+                <img src={cause.image} alt={cause.title} className="cause-img" style={{ width: "100%", height: 200, objectFit: "cover", display: "block", transition: "transform 0.5s ease" }} loading="lazy" />
                 <div style={{ position: "absolute", top: 12, left: 12, display: "flex", gap: 6 }}>
-                    <span className="tag" style={{ background: `${catColor}33`, color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.3)", backdropFilter: "blur(4px)", fontWeight: 600 }}>{cause.category}</span>
-                    {cause.urgent && <span className="tag urgent-badge" style={{ boxShadow: "0 2px 10px rgba(231, 76, 60, 0.4)" }}>🔥 Urgent</span>}
+                    <span className="tag" style={{ background: `${catColor}33`, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", fontWeight: 700, fontSize: 11, border: `1px solid ${catColor}66` }}>{cause.category}</span>
+                    {cause.urgent && <span className="tag urgent-badge" style={{ fontSize: 11, fontWeight: 700 }}>🔥 Urgent</span>}
                 </div>
             </div>
-            <div style={{ padding: "22px 24px", display: "flex", flexDirection: "column", flex: 1 }}>
-                <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{cause.ngo} · {cause.location}</div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, lineHeight: 1.4, color: COLORS.primaryDark }}>{cause.title}</h3>
-                <p style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 20, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1 }}>{cause.description}</p>
-                <div className="progress-bar" style={{ marginBottom: 12, height: 8 }}>
-                    <div className="progress-fill" style={{ width: `${p}%`, background: catColor }} />
+            <div style={{ padding: "20px", display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between" }}>
+                <div>
+                    <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }} className="tech-font">{cause.ngo} · {cause.location}</div>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 8, lineHeight: 1.3, color: "var(--text)", transition: "color 0.2s" }} className="glow-text">{cause.title}</h3>
+                    <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 16, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{cause.description}</p>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 }}>
-                    <div>
-                        <span style={{ fontWeight: 700, color: COLORS.primaryDark }}>{fmt(cause.raised)}</span>
-                        <span style={{ color: COLORS.textMuted }}> of {fmt(cause.goal)}</span>
+                <div>
+                    <div className="progress-bar" style={{ marginBottom: 10, height: 6 }}>
+                        <div className="progress-fill" style={{ width: `${p}%`, background: catColor }} />
                     </div>
-                    <div style={{ color: COLORS.textMuted, fontWeight: 500 }}>{cause.donors.toLocaleString()} donors</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 12 }}>
+                        <div>
+                            <span style={{ fontWeight: 800, color: "var(--text)" }} className="tech-font">{fmt(cause.raised)}</span>
+                            <span style={{ color: "var(--text-muted)" }}> raised</span>
+                        </div>
+                        <div style={{ color: "var(--text-muted)", fontWeight: 600 }}>{p}%</div>
+                    </div>
+                    <button className="cyber-btn" style={{ width: "100%", padding: "10px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: catColor, borderColor: catColor }} onClick={e => { e.stopPropagation(); navigate("donate", cause); }}>
+                        Donate to This Cause
+                    </button>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: catColor }}>{p}% Funded</div>
-                <button className="btn-primary" style={{ width: "100%", marginTop: 20, padding: "14px", borderRadius: 10, fontWeight: 600, background: catColor }} onClick={e => { e.stopPropagation(); navigate("donate", cause); }}>
-                    Donate to This Cause
-                </button>
             </div>
         </div>
     );
@@ -796,7 +1219,19 @@ function ExplorePage({ navigate, filterCat, setFilterCat }) {
 }
 
 function DonatePage({ navigate, causeData, donations, setDonations, showNotif }) {
-    const [form, setForm] = useState({ name: "", email: "", phone: "", amount: "", custom: "", cause: causeData ? causeData.title : "All Causes" });
+    const [form, setForm] = useState(() => {
+        const prefill = causeData?.prefilledAmount || "";
+        const presets = [500, 1000, 2000, 5000, 10000];
+        const isPreset = presets.includes(prefill);
+        return {
+            name: "",
+            email: "",
+            phone: "",
+            amount: isPreset ? prefill.toString() : prefill ? "custom" : "",
+            custom: isPreset ? "" : prefill ? prefill.toString() : "",
+            cause: causeData ? causeData.title : "All Causes"
+        };
+    });
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
