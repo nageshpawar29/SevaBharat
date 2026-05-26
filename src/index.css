@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Share+Tech+Mono&display=swap');
 
-/* Core Variables & Tokens */
+/* Core Variables & Tokens - Clean Light Theme */
 :root {
-  --primary: #1a7a4a;
-  --primary-light: #2ecc71;
-  --primary-dark: #0d5c35;
-  --accent: #f39c12;
-  --accent-light: #f7c55a;
-  --blue: #2980b9;
-  --blue-light: #3498db;
-  --danger: #e74c3c;
-  --bg: #f5f9f6;
+  --primary: #059669; /* Elegant Emerald Green */
+  --primary-light: #10b981;
+  --primary-dark: #064e3b;
+  --accent: #d97706; /* Warm Gold */
+  --accent-light: #f59e0b;
+  --blue: #2563eb;
+  --blue-light: #3b82f6;
+  --danger: #dc2626;
+  --bg: #f8fafc; /* Crisp Light Slate */
   --card: #ffffff;
-  --text: #1a2e23;
-  --text-muted: #5a7a65;
-  --border: #d4e8da;
-  --shadow: 0 4px 20px rgba(26, 122, 74, 0.06);
-  --shadow-hover: 0 12px 30px rgba(26, 122, 74, 0.12);
+  --text: #0f172a; /* Slate Charcoal */
+  --text-muted: #475569;
+  --border: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
   --glow: none;
   --font-sans: 'Outfit', sans-serif;
   --font-mono: 'Share Tech Mono', monospace;
@@ -26,25 +26,25 @@
   --scan-opacity: 0;
 }
 
-/* Hologram Cyber Mode Overrides */
+/* Core Variables - Clean Dark Theme */
 .hologram-mode {
-  --primary: #00ff66;
-  --primary-light: #39ff14;
-  --primary-dark: #003311;
-  --accent: #ffb700;
-  --accent-light: #ffd000;
-  --blue: #00d2ff;
-  --blue-light: #00e5ff;
-  --danger: #ff0055;
-  --bg: #030805;
-  --card: #07120a;
-  --text: #dcfce7;
-  --text-muted: #629676;
-  --border: #143521;
-  --shadow: 0 0 20px rgba(0, 255, 102, 0.08);
-  --shadow-hover: 0 0 30px rgba(0, 255, 102, 0.2);
-  --glow: 0 0 12px rgba(0, 255, 98, 0.7), 0 0 4px rgba(255, 255, 255, 0.5);
-  --scan-opacity: 0.03;
+  --primary: #34d399; /* Soft Emerald Mint */
+  --primary-light: #6ee7b7;
+  --primary-dark: #064e3b;
+  --accent: #fbbf24;
+  --accent-light: #fcd34d;
+  --blue: #60a5fa;
+  --blue-light: #93c5fd;
+  --danger: #f87171;
+  --bg: #0b0f19; /* Deep Structured Slate */
+  --card: #161f30; /* Dark Slate Cards */
+  --text: #f9fafb;
+  --text-muted: #9ca3af;
+  --border: #223047;
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
+  --shadow-hover: 0 25px 30px -5px rgba(0, 0, 0, 0.4);
+  --glow: none;
+  --scan-opacity: 0;
 }
 
 /* Base Styles */
@@ -269,9 +269,9 @@ body {
 
 .hologram-mode .grid-bg-effects {
   background-image: 
-    linear-gradient(rgba(0, 255, 102, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 102, 0.08) 1px, transparent 1px);
-  animation: grid-pulse 4s infinite ease-in-out;
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  animation: none;
 }
 
 @keyframes scan-down {
@@ -401,31 +401,31 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .india-svg-path:hover {
-  fill: rgba(0, 255, 102, 0.12);
+  fill: rgba(16, 185, 129, 0.08);
   stroke: var(--primary);
-  filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.2));
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.15));
 }
 
 .india-svg-path.active {
-  fill: rgba(0, 255, 102, 0.25);
+  fill: rgba(16, 185, 129, 0.18);
   stroke: var(--primary);
   stroke-width: 1.5px;
 }
 
 .hologram-mode .india-svg-path {
-  fill: #061109;
-  stroke: #163622;
+  fill: #111827;
+  stroke: #1f2937;
 }
 
 .hologram-mode .india-svg-path:hover {
-  fill: rgba(0, 255, 102, 0.2);
+  fill: rgba(52, 211, 153, 0.1);
   stroke: var(--primary);
 }
 
 /* Quick Selectors & Chips */
 .hologram-mode select, .hologram-mode input {
-  background-color: #07120a;
-  border-color: #143521;
+  background-color: #161f30;
+  border-color: #223047;
   color: var(--text);
 }
 

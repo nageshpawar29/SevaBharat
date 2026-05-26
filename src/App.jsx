@@ -438,19 +438,19 @@ export default function App() {
                     <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         {navLinks.map(l => (
                             <button key={l.key} onClick={() => navigate(l.key)}
-                                style={{ padding: "8px 14px", borderRadius: 8, background: page === l.key ? "rgba(0, 255, 102, 0.08)" : "transparent", color: page === l.key ? COLORS.primary : COLORS.textMuted, fontWeight: page === l.key ? 700 : 500, fontSize: 14, transition: "all 0.2s" }}
+                                style={{ padding: "8px 14px", borderRadius: 8, background: page === l.key ? "rgba(16, 185, 129, 0.08)" : "transparent", color: page === l.key ? COLORS.primary : COLORS.textMuted, fontWeight: page === l.key ? 700 : 500, fontSize: 14, transition: "all 0.2s" }}
                                 className={page === l.key ? "glow-text" : ""}>
                                 {l.label}
                             </button>
                         ))}
                         
-                        {/* Futuristic Hologram Mode Toggle */}
+                        {/* Theme Toggle */}
                         <button onClick={() => setHologramMode(!hologramMode)}
                             style={{ 
                                 marginLeft: 12, 
                                 padding: "8px 14px", 
                                 borderRadius: 8, 
-                                background: hologramMode ? "rgba(0, 255, 102, 0.12)" : "rgba(26, 122, 74, 0.05)", 
+                                background: hologramMode ? "rgba(52, 211, 153, 0.12)" : "rgba(16, 185, 129, 0.05)", 
                                 border: `1px solid ${hologramMode ? "var(--primary)" : "transparent"}`,
                                 color: hologramMode ? "var(--primary)" : COLORS.textMuted, 
                                 fontSize: 12, 
@@ -460,9 +460,8 @@ export default function App() {
                                 gap: 6,
                                 cursor: "pointer",
                                 transition: "all 0.3s"
-                            }}
-                            className="glow-text">
-                            {hologramMode ? "⚡ HOLO ON" : "👁️ STANDARD UI"}
+                            }}>
+                            {hologramMode ? "🌙 DARK" : "☀️ LIGHT"}
                         </button>
 
                         <button className="btn-primary" onClick={() => navigate("donate")} style={{ marginLeft: 12, padding: "9px 20px", fontSize: 14 }}>Donate Now</button>
@@ -500,7 +499,7 @@ export default function App() {
                                 width: "100%", 
                                 padding: "12px", 
                                 borderRadius: 8, 
-                                background: hologramMode ? "rgba(0, 255, 102, 0.15)" : "#f0f4f2", 
+                                background: hologramMode ? "rgba(52, 211, 153, 0.15)" : "#f0f4f2", 
                                 border: hologramMode ? "1px solid var(--primary)" : "none",
                                 color: hologramMode ? "var(--primary)" : COLORS.textMuted, 
                                 fontWeight: 700,
@@ -509,7 +508,7 @@ export default function App() {
                                 justifyContent: "center",
                                 gap: 6
                             }}>
-                            {hologramMode ? "⚡ HOLOGRAM ON" : "👁️ SWITCH TO HOLOGRAM"}
+                            {hologramMode ? "🌙 DARK MODE" : "☀️ LIGHT MODE"}
                         </button>
 
                         <button className="btn-primary" onClick={() => navigate("donate")} style={{ marginTop: 12, width: "100%" }}>Donate Now</button>
