@@ -661,9 +661,9 @@ function LiveActivityLogWidget() {
                     <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "var(--primary)" }} className="tech-font">📡 Live Network Activity</span>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--primary)", display: "inline-block", boxShadow: "var(--glow)" }}></span>
                 </div>
-                <div style={{ background: "rgba(0, 0, 0, 0.04)", border: "1px solid var(--border)", borderRadius: 10, padding: 14, minHeight: 170, fontFamily: "var(--font-mono)", fontSize: 11, display: "flex", flexDirection: "column", gap: 8, color: "var(--text-muted)", transition: "all 0.3s" }} className="tech-font">
+                <div style={{ background: "rgba(8, 15, 10, 0.95)", border: "1.5px solid rgba(0, 255, 102, 0.25)", borderRadius: 10, padding: 14, minHeight: 170, fontFamily: "var(--font-mono)", fontSize: 11, display: "flex", flexDirection: "column", gap: 8, color: "#dcfce7", textShadow: "0 0 2px rgba(0, 255, 102, 0.3)", transition: "all 0.3s", boxShadow: "inset 0 0 10px rgba(0, 255, 102, 0.05)" }} className="tech-font">
                     {logs.map((log, idx) => (
-                        <div key={idx} style={{ color: log.startsWith("DB ALERT") || log.startsWith("DB UPDATE") ? "var(--primary)" : log.startsWith("SYSTEM") ? "var(--accent)" : "var(--text)" }}>
+                        <div key={idx} style={{ color: log.startsWith("DB ALERT") || log.startsWith("DB UPDATE") ? "#00ff66" : log.startsWith("SYSTEM") ? "#ffd000" : "#dcfce7" }}>
                             {log.startsWith("SYS") || log.startsWith("DB") ? "> " : ""}{log}
                         </div>
                     ))}
@@ -738,7 +738,7 @@ function IndiaMapWidget({ filterState, setFilterState }) {
                     {/* Node Details Info Panel */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 8, height: "100%", justifyContent: "center" }}>
                         {activeState ? (
-                            <div className="fade-in" style={{ padding: 12, border: "1px solid var(--primary)", borderRadius: 10, background: "rgba(0, 255, 102, 0.03)", boxShadow: "var(--shadow)" }}>
+                            <div className="fade-in" style={{ padding: 14, border: "1.5px solid rgba(26, 122, 74, 0.3)", borderRadius: 12, background: "rgba(26, 122, 74, 0.05)", backdropFilter: "blur(8px)", boxShadow: "0 4px 20px rgba(26, 122, 74, 0.08)" }}>
                                 <div style={{ fontSize: 13, fontWeight: 800, color: "var(--primary)" }}>📍 {activeState.name}</div>
                                 <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 6, fontWeight: 700, textTransform: "uppercase" }}>Impact Projects</div>
                                 <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text)", marginTop: 2, lineHeight: 1.4 }}>{activeState.projects}</div>
@@ -948,9 +948,11 @@ function HomePage({ navigate, totalRaised, totalDonors }) {
     const featured = filteredCauses.slice(0, 3);
 
     return (
-        <div className="fade-in">
+        <div className="fade-in" style={{ position: "relative" }}>
+            <div className="bento-bg-glow-1"></div>
+            <div className="bento-bg-glow-2"></div>
             {/* Bento Grid Layout Wrapper */}
-            <div style={{ maxWidth: 1200, margin: "24px auto", padding: "0 20px" }}>
+            <div style={{ maxWidth: 1200, margin: "24px auto", padding: "0 20px", position: "relative", zIndex: 1 }}>
                 <div className="bento-grid">
                     
                     {/* BENTO BLOCK 1: Hero Block (Span 8) */}
